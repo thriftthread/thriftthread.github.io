@@ -1,35 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> <style>
-  body {
-    opacity: 1;
-    transition: opacity 0.5s ease-in-out;
-  }
-
-  body.fade-out {
-    opacity: 0;
-  }
-</style>
-
+<head>
   <meta charset="UTF-8">
   <title>About | Thrift Thread</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style> <script>
-  document.querySelectorAll('a').forEach(link => {
-    if (link.href && link.getAttribute('href').endsWith('.html')) {
-      link.addEventListener('click', function (e) {
-        e.preventDefault();
-        document.body.classList.add('fade-out');
-        setTimeout(() => {
-          window.location = this.href;
-        }, 300);
-      });
-    }
-  });
-</script>
-
+  <style>
     body {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       margin: 0;
       padding: 0;
       background: linear-gradient(to right, #6a11cb, #2575fc);
@@ -95,8 +72,7 @@
 
   <!-- Navbar -->
   <nav>
-    <div> <i class="fas fa-recycle text-2xl gradient-text"></i>
-                <a href="#home" class="text-2xl font-bold gradient-text">Thrift Thread</a></div>
+    <div><strong>🧵 Thrift Thread</strong></div>
     <div>
       <a href="index.html">Home</a>
       <a href="shop.html">Shop</a>
