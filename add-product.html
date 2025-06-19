@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Product</title>
+  <script>
+    async function submitProduct(e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const price = document.getElementById("price").value;
+      const image = document.getElementById("image").value;
+      const description = document.getElementById("description").value;
+
+      const product = { name, price, image, description };
+
+      try {
+        const res = await fetch("http://localhost:5000/api/products", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(product),
+        });
+
+        const data = await res.json();
+        document.getElementById("msg").innerText = data.message || "Product added!";
+        document.getElementById("productForm").reset();
+      } catch (err) {
+        console.error(err);
+        document.getElementById("msg").innerText = "Error adding product!";
+      }
+    }
+  </script>
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+  <h2>Add New Product 🧵</h2>
+  <form id="productForm" onsubmit="submitProduct(event)">
+    <input type="text" id="name" placeholder="Product Name" required/><br/><br/>
+    <input type="number" id="price" placeholder="Price" required/><br/><br/>
+    <input type="text" id="image" placeholder="Image URL" required/><br/><br/>
+    <textarea id="description" placeholder="Product Description" required></textarea><br/><br/>
+    <button type="submit">Add Product</button>
+  </form>
+  <p id="msg" style="color: green; font-weight: bold;"></p>
+</body>
+</html>
