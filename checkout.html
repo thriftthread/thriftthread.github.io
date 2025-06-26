@@ -35,6 +35,8 @@
         <h2 class="text-xl font-semibold mb-4">Customer Info</h2>
         <form id="order-form" class="space-y-4">
   <input type="text" id="name" placeholder="Full Name" required class="w-full p-2 border rounded" />
+<input type="tel" id="phone" placeholder="Mobile Number" required class="w-full p-2 border rounded" />
+<span id="phone-error" style="color:red;"></span>
   <input type="email" id="email" placeholder="Email" required class="w-full p-2 border rounded" />
 
   <input type="text" id="state" placeholder="State" required class="w-full p-2 border rounded" />
@@ -141,7 +143,19 @@
   document.getElementById("order-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const name = document.getElementById("name").value;
+    const name = document.getElementById("name").value; 
+    const phone = document.getElementById("phone").value.trim();
+const phoneError = document.getElementById("phone-error");
+
+// Simple 10-digit check (India format)
+const phonePattern = /^[6-9]\d{9}$/;
+
+if (!phonePattern.test(phone)) {
+  phoneError.textContent = "Please enter a valid 10-digit phone number.";
+} else {
+  phoneError.textContent = ""; // Clear error
+  console.log("Phone number is valid:", phone);
+}
     const email = document.getElementById("email").value;
     const state = document.getElementById("state").value;
     const city = document.getElementById("city").value;
@@ -162,6 +176,7 @@
         total,
         customer: {
           name,
+          phone,
           email,
           address: {
             state,
