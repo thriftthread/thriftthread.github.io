@@ -524,7 +524,7 @@ fetch(apiURL)
           <div class="p-4">
             <h3 class="text-xl font-semibold">${p.name}</h3>
             <p class="text-gray-600 mb-2">$${p.price}</p>
-            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add to Cart</button>
+            <button onclick='addToCart(${JSON.stringify(p)})' class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add to Cart</button>
           </div>
         </div>`;
     });
@@ -533,6 +533,14 @@ fetch(apiURL)
     console.error("Error loading products:", err);
     document.getElementById('product-grid').innerHTML = "<p class='text-red-600'>Unable to load products 😢</p>";
   });
+</script>
+<script>
+  function addToCart(product) {
+    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    cart.push(product);
+    localStorage.setItem("cart", JSON.stringify(cart));
+    alert(`${product.name} added to cart!`);
+  }
 </script>
 
 </body>
