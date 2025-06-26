@@ -74,13 +74,13 @@
 
 <!-- ✅ PASTE HERE -->
 <script>
+<script>
   const cart = JSON.parse(localStorage.getItem("cart")) || [];
   const summary = document.getElementById("summary");
   const totalDisplay = document.getElementById("total");
   const toast = document.getElementById("toast");
   const userId = localStorage.getItem("userId");
 
-  // Display order summary
   let total = 0;
   cart.forEach(item => {
     total += parseFloat(item.price);
@@ -95,7 +95,6 @@
   });
   totalDisplay.textContent = total.toFixed(2);
 
-  // Handle form submission
   document.getElementById("order-form").addEventListener("submit", async function (e) {
     e.preventDefault();
 
@@ -108,7 +107,6 @@
     const line = document.getElementById("line").value.trim();
     const phoneError = document.getElementById("phone-error");
 
-    // Validate phone number
     const phonePattern = /^[6-9]\d{9}$/;
     if (!phonePattern.test(phone)) {
       phoneError.textContent = "Please enter a valid 10-digit phone number.";
@@ -118,13 +116,11 @@
     }
 
     try {
-      // Fetch cart from DB
       const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
       const items = await resCart.json();
 
       const total = items.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
 
-      // Submit order
       const res = await fetch("https://thrifted-backend.onrender.com/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -147,19 +143,17 @@
 
       const data = await res.json();
       toast.textContent = "🎉 " + data.message;
-toast.classList.remove("hidden");
-setTimeout(() => {
-  toast.classList.add("hidden");
-  window.location.href = "thankyou.html";
-}, 2500);
+      toast.classList.remove("hidden");
 
+      setTimeout(() => {
+        toast.classList.add("hidden");
+        window.location.href = "thankyou.html";
+      }, 2500);
 
-      // Clear cart in DB
       await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`, {
         method: "DELETE"
       });
 
-      window.location.href = "thankyou.html";
     } catch (err) {
       console.error(err);
       toast.textContent = "❌ Failed to place order. Try again.";
@@ -170,10 +164,6 @@ setTimeout(() => {
   });
 </script>
 <!-- End of Script -->
-
-</body>
-</html>
-
 
 </body>
 </html>
