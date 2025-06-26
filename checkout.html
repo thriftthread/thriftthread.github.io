@@ -135,5 +135,54 @@
       }
     });
   </script>
+<script>
+  const userId = localStorage.getItem("userId");
+
+  document.getElementById("order-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const state = document.getElementById("state").value;
+    const city = document.getElementById("city").value;
+    const pincode = document.getElementById("pincode").value;
+    const line = document.getElementById("line").value;
+
+    // Fetch user's cart from DB
+    const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
+    const items = await resCart.json();
+
+    const total = items.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
+
+    const res = await fetch("https://thrifted-backend.onrender.com/api/orders`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items,
+        total,
+        customer: {
+          name,
+          email,
+          address: {
+            state,
+            city,
+            pincode,
+            line
+          }
+        }
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message);
+
+    await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`, {
+      method: "DELETE"
+    });
+
+    window.location.href = "thankyou.html"
+  });
+</script>
+
 </body>
 </html>
