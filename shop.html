@@ -344,89 +344,49 @@
         });
         
         // Sample product data - in a real app, this would come from a database
-        const products = [
-            {
-                id: 1,
-                name: "Vintage Denim Jacket",
-                price: 35.99,
-                category: "Outerwear",
-                condition: "Good",
-                sizes: ["S", "M", "L"],
-                image: "https://images.unsplash.com/photo-1543076449-ae0315a4c1f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.5
-            },
-            {
-                id: 2,
-                name: "Floral Summer Dress",
-                price: 24.99,
-                category: "Dresses",
-                condition: "Excellent",
-                sizes: ["XS", "S", "M"],
-                image: "https://images.unsplash.com/photo-1539109136884-9be9e7b77d07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.8
-            },
-            {
-                id: 3,
-                name: "High-Waisted Jeans",
-                price: 28.50,
-                category: "Bottoms",
-                condition: "Good",
-                sizes: ["28", "30", "32"],
-                image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.2
-            },
-            {
-                id: 4,
-                name: "Retro Graphic Tee",
-                price: 15.99,
-                category: "Tops",
-                condition: "Fair",
-                sizes: ["M", "L", "XL"],
-                image: "https://images.unsplash.com/photo-1527719327859-c6ce80353573?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.0
-            },
-            {
-                id: 5,
-                name: "Corduroy Blazer",
-                price: 42.99,
-                category: "Outerwear",
-                condition: "Excellent",
-                sizes: ["S", "M"],
-                image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.7
-            },
-            {
-                id: 6,
-                name: "Silk Scarf",
-                price: 12.99,
-                category: "Accessories",
-                condition: "Good",
-                sizes: ["One Size"],
-                image: "https://images.unsplash.com/photo-1583744949094-cd0b7a9f7f20?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.3
-            },
-            {
-                id: 7,
-                name: "Pleated Midi Skirt",
-                price: 22.50,
-                category: "Bottoms",
-                condition: "Excellent",
-                sizes: ["XS", "S"],
-                image: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.6
-            },
-            {
-                id: 8,
-                name: "Knit Sweater Vest",
-                price: 19.99,
-                category: "Tops",
-                condition: "Good",
-                sizes: ["M", "L", "XL"],
-                image: "https://images.unsplash.com/photo-1551028718-7c6f06b6d5a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
-                rating: 4.4
-            }
-        ];
-        
+        <div id="product-grid" class="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"></div>
+
+<script>
+  const apiURL = 'https://thrifted-backend.onrender.com/api/products';
+
+  fetch(apiURL)
+    .then(res => res.json())
+    .then(products => {
+      const grid = document.getElementById('product-grid');
+      if (!products.length) {
+        grid.innerHTML = "<p class='text-gray-600'>No products available 🥲</p>";
+        return;
+      }
+
+      products.forEach(p => {
+        grid.innerHTML += `
+          <div class="bg-white rounded-lg shadow hover:shadow-lg transition overflow-hidden">
+            <img src="${p.image}" alt="${p.name}" class="w-full h-56 object-cover"/>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold text-gray-800">${p.name}</h3>
+              <p class="text-green-600 font-bold mb-2">₹${p.price}</p>
+              <button onclick='addToCart(${JSON.stringify(p)})' class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition">
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    })
+    .catch(err => {
+      console.error("Error loading products:", err);
+      document.getElementById('product-grid').innerHTML =
+        "<p class='text-red-600'>Error loading products 😓</p>";
+    });
+
+  function addToCart(product) {
+    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.push(product);
+    localStorage.setItem('cart', JSON.stringify(cart));
+    alert(`${product.name} added to cart! 🛒`);
+  }
+</script>
+
         // Render products
         const productGrid = document.getElementById('product-grid');
         
