@@ -380,10 +380,37 @@
     });
 
   function addToCart(product) {
-    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+   async function addToCart(product) {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    alert("⚠️ Please login first!");
+    window.location.href = "login.html";
+    return;
+  }
+
+  try {
+    // 🔁 Fetch current cart from backend
+    const res = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
+    const cart = await res.json();
+
+    // ➕ Add new product
     cart.push(product);
-    localStorage.setItem('cart', JSON.stringify(cart));
-    alert(`${product.name} added to cart! 🛒`);
+
+    // 💾 Save updated cart to backend
+    await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart })
+    });
+
+    alert(`${product.name} added to your cart 🛒`);
+  } catch (err) {
+    console.error("❌ Error adding to cart:", err);
+    alert("Something went wrong while adding to cart.");
+  }
+}
+
   }
 </script>
 
