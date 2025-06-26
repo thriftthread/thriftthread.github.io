@@ -34,10 +34,14 @@
       <div>
         <h2 class="text-xl font-semibold mb-4">Customer Info</h2>
         <form id="order-form" class="space-y-4">
-          <input type="text" id="name" placeholder="Full Name" required class="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500"/>
-          <input type="tel" id="phone" placeholder="Phone Number" required class="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500"/>
-          <textarea id="address" placeholder="Shipping Address" rows="4" required class="w-full p-3 border rounded-md focus:ring-2 focus:ring-green-500"></textarea>
+  <input type="text" id="name" placeholder="Full Name" required class="w-full p-2 border rounded" />
+  <input type="email" id="email" placeholder="Email" required class="w-full p-2 border rounded" />
 
+  <input type="text" id="state" placeholder="State" required class="w-full p-2 border rounded" />
+  <input type="text" id="city" placeholder="City" required class="w-full p-2 border rounded" />
+  <input type="text" id="pincode" placeholder="Pincode" pattern="\\d{6}" required class="w-full p-2 border rounded" />
+  
+  <textarea id="line" placeholder="Street/House No." required class="w-full p-2 border rounded"></textarea>
           <div>
             <label class="block font-medium mb-2">Payment Method</label>
             <label class="flex items-center">
