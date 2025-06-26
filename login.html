@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Thrift Thread</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #d1fae5, #a7f3d0);
+    }
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out forwards;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .btn {
+      transition: transform 0.2s ease, background-color 0.3s ease;
+    }
+    .btn:hover {
+      transform: scale(1.03);
+      background-color: #059669;
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen px-4">
+
+  <div class="bg-white shadow-lg rounded-xl p-8 max-w-sm w-full fade-in">
+    <h1 class="text-2xl font-bold text-green-700 text-center mb-6">Welcome Back 👋</h1>
+
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label class="block font-medium text-gray-700 mb-1" for="phone">Phone Number</label>
+        <input type="tel" id="phone" placeholder="Enter your number" required
+          class="w-full border border-green-300 p-3 rounded-md focus:ring-2 focus:ring-green-500 outline-none"/>
+      </div>
+
+      <button type="submit"
+        class="btn w-full bg-green-600 text-white font-medium py-3 rounded-md hover:bg-green-700">
+        Login / Continue
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-500 mt-4">
+      New user? No worries. Just enter your number and continue.
+    </p>
+  </div>
+
+  <!-- Script -->
+  <script>
+    document.getElementById("login-form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const phone = document.getElementById("phone").value;
+
+      const res = await fetch("https://thrifted-backend.onrender.com/api/user/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone })
+      });
+
+      const data = await res.json();
+      localStorage.setItem("userId", data.userId);
+      alert("✅ Login successful!");
+      window.location.href = "shop.html"; // redirect after login
+    });
+  </script>
+</body>
+</html>
