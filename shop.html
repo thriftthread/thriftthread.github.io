@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thrift Thread | Shop Sustainable Fashion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5E8E7B;
+            --secondary: #F9C784;
+            --accent: #FF7B54;
+            --light: #F7F7F7;
+            --dark: #333333;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+        
+        .product-card {
+            transition: all 0.3s ease;
+            transform: translateY(0);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #4a7766;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e6b56d;
+            transform: translateY(-2px);
+        }
+        
+        .filter-section {
+            transition: all 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+        
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-400 { animation-delay: 0.4s; }
+        
+        /* For mobile filter toggle */
+        #mobile-filters {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        #mobile-filters.open {
+            max-height: 1000px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-green-700">Thrift Thread</a>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="hover:text-green-600">Home</a>
+                <a href="#" class="font-semibold text-green-600">Shop</a>
+                <a href="#" class="hover:text-green-600">About</a>
+                <a href="#" class="hover:text-green-600">Contact</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="#" class="hover:text-green-600"><i class="fas fa-search"></i></a>
+                <a href="#" class="hover:text-green-600"><i class="fas fa-user"></i></a>
+                <a href="#" class="hover:text-green-600 relative">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="absolute -top-2 -right-2 bg-green-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </a>
+                <button id="mobile-menu-button" class="md:hidden">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Mobile Menu (hidden by default) -->
+    <div id="mobile-menu" class="hidden bg-white shadow-md py-2 px-4 absolute w-full z-40">
+        <a href="#" class="block py-2 hover:text-green-600">Home</a>
+        <a href="#" class="block py-2 font-semibold text-green-600">Shop</a>
+        <a href="#" class="block py-2 hover:text-green-600">About</a>
+        <a href="#" class="block py-2 hover:text-green-600">Contact</a>
+    </div>
+    
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-green-50 to-yellow-50 py-16 px-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-green-800 mb-4 animate-fade-in">Sustainable Style, Secondhand Finds</h1>
+            <p class="text-lg text-gray-600 mb-8 max-w-3xl mx-auto animate-fade-in delay-100">Discover unique pre-loved fashion that tells a story. Each purchase helps reduce textile waste.</p>
+            <div class="relative max-w-md mx-auto animate-fade-in delay-200">
+                <input type="text" placeholder="Search for vintage treasures..." class="w-full py-3 px-4 pr-12 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                <button class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 text-white p-2 rounded-full">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <!-- Mobile Filter Toggle -->
+        <div class="md:hidden mb-6">
+            <button id="filter-toggle" class="w-full flex justify-between items-center bg-white py-3 px-4 rounded-lg shadow-sm">
+                <span class="font-medium">Filters</span>
+                <i class="fas fa-chevron-down transition-transform duration-300"></i>
+            </button>
+        </div>
+        
+        <div class="flex flex-col md:flex-row gap-8">
+            <!-- Filters Section -->
+            <div id="mobile-filters" class="md:w-1/4 bg-white p-6 rounded-lg shadow-sm filter-section">
+                <h3 class="text-lg font-semibold mb-4">Filters</h3>
+                
+                <!-- Categories -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-3 flex justify-between items-center">
+                        <span>Categories</span>
+                        <i class="fas fa-chevron-down text-sm"></i>
+                    </h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2" checked>
+                            <span>All Clothing</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Tops</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Bottoms</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Dresses</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Outerwear</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Accessories</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Price Range -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-3">Price Range</h4>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-gray-600">$5</span>
+                        <span class="text-sm text-gray-600">$100+</span>
+                    </div>
+                    <input type="range" min="5" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    <div class="flex justify-between mt-4">
+                        <input type="number" min="5" max="100" placeholder="Min" class="w-20 p-2 border rounded">
+                        <span class="self-center">to</span>
+                        <input type="number" min="5" max="100" placeholder="Max" class="w-20 p-2 border rounded">
+                    </div>
+                </div>
+                
+                <!-- Sizes -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-3">Sizes</h4>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">XS</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">S</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">M</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">L</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">XL</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">XXL</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">32</button>
+                        <button class="border rounded-md py-1 px-2 text-sm hover:bg-gray-100">34</button>
+                    </div>
+                </div>
+                
+                <!-- Condition -->
+                <div class="mb-6">
+                    <h4 class="font-medium mb-3">Condition</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Excellent</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2" checked>
+                            <span>Good</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" class="rounded text-green-600 mr-2">
+                            <span>Fair</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition">Apply Filters</button>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="md:w-3/4">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold">All Products</h2>
+                    <div class="flex items-center">
+                        <span class="mr-2 text-sm">Sort by:</span>
+                        <select class="border rounded-md py-1 px-2 text-sm">
+                            <option>Featured</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Newest</option>
+                            <option>Best Rated</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Product Grid -->
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Product cards will be dynamically inserted here -->
+                </div>
+                
+                <!-- Pagination -->
+                <div class="mt-10 flex justify-center">
+                    <nav class="flex items-center space-x-2">
+                        <button class="px-3 py-1 rounded border hover:bg-gray-100">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="px-3 py-1 rounded border bg-green-600 text-white">1</button>
+                        <button class="px-3 py-1 rounded border hover:bg-gray-100">2</button>
+                        <button class="px-3 py-1 rounded border hover:bg-gray-100">3</button>
+                        <button class="px-3 py-1 rounded border hover:bg-gray-100">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Newsletter -->
+    <div class="bg-green-50 py-12 px-6 mt-12">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-2xl font-bold text-green-800 mb-4">Join Our Sustainable Fashion Movement</h2>
+            <p class="text-gray-600 mb-6">Subscribe to get updates on new arrivals, exclusive deals, and sustainability tips.</p>
+            <div class="flex flex-col sm:flex-row gap-2 max-w-md mx-auto">
+                <input type="email" placeholder="Your email address" class="flex-grow px-4 py-3 rounded-md border focus:outline-none focus:ring-2 focus:ring-green-500">
+                <button class="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 transition">Subscribe</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12 px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+                <h3 class="text-xl font-bold mb-4">Thrift Thread</h3>
+                <p class="text-gray-300">Redefining fashion by giving pre-loved clothing a second life.</p>
+                <div class="flex space-x-4 mt-4">
+                    <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-gray-300 hover:text-white"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-4">Shop</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-300 hover:text-white">All Products</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">New Arrivals</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Best Sellers</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Sale Items</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-4">About</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-300 hover:text-white">Our Story</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Sustainability</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Blog</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 class="font-semibold mb-4">Help</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-gray-300 hover:text-white">Contact Us</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">FAQs</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Shipping & Returns</a></li>
+                    <li><a href="#" class="text-gray-300 hover:text-white">Size Guide</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto mt-8 pt-8 border-t border-gray-700 text-center text-gray-400 text-sm">
+            <p>© 2023 Thrift Thread. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        });
+        
+        // Mobile filter toggle
+        document.getElementById('filter-toggle').addEventListener('click', function() {
+            const filters = document.getElementById('mobile-filters');
+            const icon = this.querySelector('i');
+            
+            filters.classList.toggle('open');
+            icon.classList.toggle('rotate-180');
+        });
+        
+        // Sample product data - in a real app, this would come from a database
+        const products = [
+            {
+                id: 1,
+                name: "Vintage Denim Jacket",
+                price: 35.99,
+                category: "Outerwear",
+                condition: "Good",
+                sizes: ["S", "M", "L"],
+                image: "https://images.unsplash.com/photo-1543076449-ae0315a4c1f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.5
+            },
+            {
+                id: 2,
+                name: "Floral Summer Dress",
+                price: 24.99,
+                category: "Dresses",
+                condition: "Excellent",
+                sizes: ["XS", "S", "M"],
+                image: "https://images.unsplash.com/photo-1539109136884-9be9e7b77d07?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.8
+            },
+            {
+                id: 3,
+                name: "High-Waisted Jeans",
+                price: 28.50,
+                category: "Bottoms",
+                condition: "Good",
+                sizes: ["28", "30", "32"],
+                image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.2
+            },
+            {
+                id: 4,
+                name: "Retro Graphic Tee",
+                price: 15.99,
+                category: "Tops",
+                condition: "Fair",
+                sizes: ["M", "L", "XL"],
+                image: "https://images.unsplash.com/photo-1527719327859-c6ce80353573?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.0
+            },
+            {
+                id: 5,
+                name: "Corduroy Blazer",
+                price: 42.99,
+                category: "Outerwear",
+                condition: "Excellent",
+                sizes: ["S", "M"],
+                image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.7
+            },
+            {
+                id: 6,
+                name: "Silk Scarf",
+                price: 12.99,
+                category: "Accessories",
+                condition: "Good",
+                sizes: ["One Size"],
+                image: "https://images.unsplash.com/photo-1583744949094-cd0b7a9f7f20?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.3
+            },
+            {
+                id: 7,
+                name: "Pleated Midi Skirt",
+                price: 22.50,
+                category: "Bottoms",
+                condition: "Excellent",
+                sizes: ["XS", "S"],
+                image: "https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.6
+            },
+            {
+                id: 8,
+                name: "Knit Sweater Vest",
+                price: 19.99,
+                category: "Tops",
+                condition: "Good",
+                sizes: ["M", "L", "XL"],
+                image: "https://images.unsplash.com/photo-1551028718-7c6f06b6d5a1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80",
+                rating: 4.4
+            }
+        ];
+        
+        // Render products
+        const productGrid = document.getElementById('product-grid');
+        
+        products.forEach((product, index) => {
+            const productCard = document.createElement('div');
+            productCard.className = `product-card bg-white rounded-lg overflow-hidden shadow-sm animate-fade-in delay-${(index % 5) * 100}`;
+            productCard.innerHTML = `
+                <div class="relative pb-3/4 h-64 overflow-hidden">
+                    <img src="${product.image}" alt="${product.name}" class="absolute h-full w-full object-cover transition-transform duration-500 hover:scale-105">
+                    <div class="absolute top-2 right-2 bg-white rounded-full p-2 shadow-md">
+                        <i class="far fa-heart text-gray-400 hover:text-red-500 cursor-pointer"></i>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-medium">${product.name}</h3>
+                        <span class="text-sm text-gray-500">${product.condition}</span>
+                    </div>
+                    <div class="flex items-center mb-3">
+                        ${renderStars(product.rating)}
+                        <span class="text-xs text-gray-500 ml-1">(${product.rating})</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-gray-500 text-sm">Sizes: ${product.sizes.join(', ')}</span>
+                        <span class="font-semibold text-green-600">$${product.price.toFixed(2)}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="btn-secondary text-sm py-2 rounded-md flex items-center justify-center">
+                            <i class="fas fa-shopping-cart mr-2"></i> Add
+                        </button>
+                        <button class="btn-primary text-white text-sm py-2 rounded-md">
+                            Buy Now
+                        </button>
+                    </div>
+                </div>
+            `;
+            productGrid.appendChild(productCard);
+        });
+        
+        function renderStars(rating) {
+            let stars = '';
+            const fullStars = Math.floor(rating);
+            const hasHalfStar = rating % 1 >= 0.5;
+            
+            for (let i = 0; i < fullStars; i++) {
+                stars += '<i class="fas fa-star text-yellow-400"></i>';
+            }
+            
+            if (hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+            }
+            
+            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+            for (let i = 0; i < emptyStars; i++) {
+                stars += '<i class="far fa-star text-yellow-400"></i>';
+            }
+            
+            return stars;
+        }
+        
+        // Placeholder for future database integration
+        // This would be replaced with actual API calls to MongoDB/Firebase
+        async function fetchProductsFromDatabase() {
+            // Example structure for future implementation:
+            /*
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching products:', error);
+                return [];
+            }
+            */
+            return products; // Using sample data for now
+        }
+        
+        // Initialize with database data
+        document.addEventListener('DOMContentLoaded', async () => {
+            // const products = await fetchProductsFromDatabase();
+            // renderProducts(products);
+        });
+    </script>
+</body>
+</html>
