@@ -510,5 +510,30 @@
             // renderProducts(products);
         });
     </script>
+<script>
+const apiURL = 'https://thrifted-backend.onrender.com/api/products'; //
+
+fetch(apiURL)
+  .then(res => res.json())
+  .then(products => {
+    const grid = document.getElementById('product-grid');
+    products.forEach(p => {
+      grid.innerHTML += `
+        <div class="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition">
+          <img src="${p.image}" alt="${p.name}" class="w-full h-64 object-cover">
+          <div class="p-4">
+            <h3 class="text-xl font-semibold">${p.name}</h3>
+            <p class="text-gray-600 mb-2">$${p.price}</p>
+            <button class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Add to Cart</button>
+          </div>
+        </div>`;
+    });
+  })
+  .catch(err => {
+    console.error("Error loading products:", err);
+    document.getElementById('product-grid').innerHTML = "<p class='text-red-600'>Unable to load products 😢</p>";
+  });
+</script>
+
 </body>
 </html>
