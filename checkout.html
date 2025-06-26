@@ -93,11 +93,19 @@
 
   <!-- ✅ SCRIPT BELOW IS NOW FIXED -->
   <script>
-    const cart = JSON.parse(localStorage.getItem("cart")) || [];
+const userId = localStorage.getItem("userId");
+
+if (!userId) {
+  alert("⚠️ Please login first!");
+  window.location.href = "login.html";
+}
+
+    const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
+const cart = await resCart.json();
+
     const summary = document.getElementById("summary");
     const totalDisplay = document.getElementById("total");
     const toast = document.getElementById("toast");
-    const userId = localStorage.getItem("userId");
 
     let total = 0;
     cart.forEach(item => {
