@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Status | Thrift Thread</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-800">
+
+  <div class="max-w-3xl mx-auto px-4 py-10">
+    <div class="bg-green-100 border border-green-400 rounded-2xl p-6 shadow-md">
+      <h1 class="text-3xl font-bold text-green-800 mb-4">📦 Your Order Details</h1>
+
+      <div class="text-sm text-gray-700 space-y-1 mb-6">
+        <p><span class="font-semibold">Order ID:</span> <span id="order-id">Loading...</span></p>
+        <p><span class="font-semibold">Status:</span> <span id="order-status">Loading...</span></p>
+        <p><span class="font-semibold">Total:</span> ₹<span id="order-total">Loading...</span></p>
+        <p><span class="font-semibold">Ordered on:</span> <span id="order-date">Loading...</span></p>
+        <p><span class="font-semibold">Estimated Delivery:</span> <span id="delivery-date">Loading...</span></p>
+      </div>
+
+      <div>
+        <h2 class="text-xl font-semibold mb-2">🧾 Items Ordered:</h2>
+        <div id="items-list" class="space-y-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get("orderId");
+
+    fetch(`https://thrifted-backend.onrender.com/api/order/${orderId}`)
+      .then(res => res.json())
+      .then(order => {
+        document.getElementById("order-id").textContent = order._id;
+        document.getElementById("order-status").textContent = order.status || "Confirmed";
+        document.getElementById("order-total").textContent = order.total;
+        document.getElementById("order-date").textContent = new Date(order.createdAt).toLocaleString();
+
+        const estimated = new Date(order.createdAt);
+        estimated.setDate(estimated.getDate() + 5);
+        document.getElementById("delivery-date").textContent = estimated.toDateString();
+
+        const container = document.getElementById("items-list");
+        order.items.forEach(item => {
+          const card = document.createElement("div");
+          card.className = "flex items-center gap-4 p-3 bg-white border rounded-xl shadow-sm";
+
+          card.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" class="w-16 h-16 rounded object-cover border" />
+            <div>
+              <p class="font-medium text-lg text-gray-800">${item.name}</p>
+              <p class="text-sm text-gray-600">₹${item.price} × ${item.quantity || 1}</p>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      })
+      .catch(err => {
+        console.error("Order fetch error:", err);
+        document.querySelector(".max-w-3xl").innerHTML = "<p class='text-red-600 font-semibold'>⚠️ Order not found or something went wrong.</p>";
+      });
+  </script>
+
+</body>
+</html>
