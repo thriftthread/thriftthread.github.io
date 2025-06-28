@@ -521,12 +521,37 @@ fetch(apiURL)
   });
 </script>
 <script>
-  function addToCart(product) {
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
-    cart.push(product);
-    localStorage.setItem("cart", JSON.stringify(cart));
-    alert(`${product.name} added to cart!`);
+  async function addToCart(product) {
+  const userId = localStorage.getItem("userId");
+
+  if (!userId) {
+    alert("⚠️ Please login first!");
+    window.location.href = "login.html";
+    return;
   }
+
+  try {
+    // Get existing cart
+    const res = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
+    const cart = await res.json();
+
+    // Add current product
+    cart.push(product);
+
+    // Save updated cart
+    await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cart }),
+    });
+
+    alert(`${product.name} added to your cart 🛒`);
+  } catch (err) {
+    console.error("❌ Error adding to cart:", err);
+    alert("Something went wrong while adding to cart.");
+  }
+}
+
 </script>
 
 </body>
