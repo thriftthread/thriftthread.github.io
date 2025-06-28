@@ -56,12 +56,13 @@
         <h2 class="text-xl font-semibold mb-4">Customer Info</h2>
         <form id="order-form" class="space-y-4">
           <input type="text" id="name" placeholder="Full Name" required class="w-full p-2 border rounded" />
-          <input type="tel" id="phone" placeholder="Mobile Number" required class="w-full p-2 border rounded" />
+          <input type="number" id="phone" placeholder="Mobile Number" required minlength="10" maxlength="10" class="w-full p-2 border rounded" />
           <span id="phone-error" style="color:red;"></span>
           <input type="email" id="email" placeholder="Email" required class="w-full p-2 border rounded" />
           <input type="text" id="state" placeholder="State" required class="w-full p-2 border rounded" />
           <input type="text" id="city" placeholder="City" required class="w-full p-2 border rounded" />
-          <input type="text" id="pincode" placeholder="Pincode" pattern="\d{6}" required class="w-full p-2 border rounded" title="Please enter a 6-digit pincode." />
+          <input type="number" id="pincode" placeholder="Pincode" required minlength="6" maxlength="6" class="w-full p-2 border rounded" />
+
           <textarea id="line" placeholder="Street/House No." required class="w-full p-2 border rounded"></textarea>
 
           <div>
@@ -80,7 +81,8 @@
       <!-- Order Summary -->
       <div>
         <h2 class="text-xl font-semibold mb-4">Order Summary</h2>
-        <div id="summary" class="space-y-4 max-h-[300px] overflow-y-auto"></div>
+        <div id="summary" class="space-y-4 max-h-[300px] overflow-y-auto border rounded p-2"></div>
+
         <div class="border-t pt-4 mt-4 text-right font-semibold text-lg">
           Total: ₹<span id="total">0</span>
         </div>
@@ -93,103 +95,115 @@
 
   <!-- ✅ SCRIPT BELOW IS NOW FIXED -->
   <script>
-const userId = localStorage.getItem("userId");
+(async () => {
+  const userId = localStorage.getItem("userId");
 
-if (!userId) {
-  alert("⚠️ Please login first!");
-  window.location.href = "login.html";
-}
+  if (!userId) {
+    alert("⚠️ Please login first!");
+    window.location.href = "login.html";
+    return;
+  }
 
-    const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
-const cart = await resCart.json();
+  const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
+  const cart = await resCart.json();
 
-    const summary = document.getElementById("summary");
-    const totalDisplay = document.getElementById("total");
-    const toast = document.getElementById("toast");
+  const summary = document.getElementById("summary");
+  const totalDisplay = document.getElementById("total");
+  const toast = document.getElementById("toast");
 
-    let total = 0;
-    cart.forEach(item => {
-      total += parseFloat(item.price);
+  // ✅ STEP 7: Empty cart handling
+  if (cart.length === 0) {
+    summary.innerHTML = "<p class='text-gray-500'>No items in your cart 🛒</p>";
+    return;
+  }
 
-        summary.innerHTML += `   
-<div class="fade-in flex items-center justify-between">
-          <div>
-            <p class="font-medium">${item.name}</p>
-            <p class="text-sm text-gray-500">₹${item.price}</p>
-          </div>
-          <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md">
-        </div>`;
-    });
-    totalDisplay.textContent = total.toFixed(2);
+  // ✅ STEP 2: Total price × quantity
+  let total = 0;
+  cart.forEach(item => {
+    total += item.price * (item.quantity || 1);
+    summary.innerHTML += `   
+      <div class="fade-in flex items-center justify-between">
+        <div>
+          <p class="font-medium">${item.name}</p>
+          <p class="text-sm text-gray-500">₹${item.price} × ${item.quantity || 1}</p>
+        </div>
+        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-md">
+      </div>`;
+  });
+  totalDisplay.textContent = total.toFixed(2);
 
-    document.getElementById("order-form").addEventListener("submit", async function (e) {
-      e.preventDefault();
+  document.getElementById("order-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-      const name = document.getElementById("name").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const state = document.getElementById("state").value.trim();
-      const city = document.getElementById("city").value.trim();
-      const pincode = document.getElementById("pincode").value.trim();
-      const line = document.getElementById("line").value.trim();
-      const phoneError = document.getElementById("phone-error");
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const state = document.getElementById("state").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const pincode = document.getElementById("pincode").value.trim();
+    const line = document.getElementById("line").value.trim();
+    const phoneError = document.getElementById("phone-error");
 
-      const phonePattern = /^[6-9]\d{9}$/;
-      if (!phonePattern.test(phone)) {
-        phoneError.textContent = "Please enter a valid 10-digit phone number.";
-        return;
-      } else {
-        phoneError.textContent = "";
-      }
+    const phonePattern = /^[6-9]\d{9}$/;
+    if (!phonePattern.test(phone)) {
+      phoneError.textContent = "Please enter a valid 10-digit phone number.";
+      return;
+    } else {
+      phoneError.textContent = "";
+    }
 
-      try {
-        const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
-        const items = await resCart.json();
+    try {
+      const resCart = await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`);
+      const items = await resCart.json();
+      const total = items.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
 
-        const total = items.reduce((acc, item) => acc + item.price * (item.quantity || 1), 0);
+      const res = await fetch("https://thrifted-backend.onrender.com/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          total,
+          customer: {
+            name,
+            phone,
+            email,
+            address: {
+              state,
+              city,
+              pincode,
+              line
+            },
+            // ✅ STEP 6: Full address string
+            fullAddress: `${line}, ${city}, ${state} - ${pincode}`
+          }
+        })
+      });
 
-        const res = await fetch("https://thrifted-backend.onrender.com/api/orders", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items,
-            total,
-            customer: {
-              name,
-              phone,
-              email,
-              address: {
-                state,
-                city,
-                pincode,
-                line
-              }
-            }
-          })
-        });
+      const data = await res.json();
+      console.log("Server Response:", data); // optional debug
+      toast.textContent = "🎉 Order placed successfully!"; // ✅ STEP 5: Better success message
+      toast.classList.remove("hidden");
 
-        const data = await res.json();
-        toast.textContent = "🎉 " + data.message;
-        toast.classList.remove("hidden");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+        window.location.href = "thankyou.html";
+      }, 2500);
 
-        setTimeout(() => {
-          toast.classList.add("hidden");
-          window.location.href = "thankyou.html";
-        }, 2500);
+      await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`, {
+        method: "DELETE"
+      });
 
-        await fetch(`https://thrifted-backend.onrender.com/api/user/${userId}/cart`, {
-          method: "DELETE"
-        });
+    } catch (err) {
+      console.error(err);
+      toast.textContent = "❌ Failed to place order. Try again.";
+      toast.classList.remove("hidden");
+      toast.classList.add("bg-red-600");
+      setTimeout(() => toast.classList.add("hidden"), 3000);
+    }
+  });
+})();
+</script>
 
-      } catch (err) {
-        console.error(err);
-        toast.textContent = "❌ Failed to place order. Try again.";
-        toast.classList.remove("hidden");
-        toast.classList.add("bg-red-600");
-        setTimeout(() => toast.classList.add("hidden"), 3000);
-      }
-    });
-  </script>
 
 </body>
 </html>
