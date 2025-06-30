@@ -61,6 +61,12 @@
     const otpSection = document.getElementById("otp-section");
     const loginForm = document.getElementById("login-form");
     let confirmationResult;
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
+  size: "normal",
+  callback: () => {
+    console.log("reCAPTCHA solved ✅");
+  }
+});
 
     // ✅ SEND OTP
     sendOtpBtn.addEventListener("click", async () => {
@@ -69,13 +75,7 @@
         alert("❌ Please enter a valid phone number with country code (e.g. +91...)");
         return;
       }
-
-      window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
-        size: "normal",
-        callback: () => console.log("reCAPTCHA solved ✅"),
-      });
-
-      try {
+ try {
         window.confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier);
 
         alert("✅ OTP sent to " + phoneNumber);
