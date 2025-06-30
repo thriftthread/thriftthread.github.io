@@ -1178,33 +1178,34 @@ Rimagined</p>
 </script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    const userPhone = localStorage.getItem("phone");
-    if (userPhone) {
-      const banner = document.getElementById("welcome-banner");
-      banner.textContent = `👋 Welcome back! Logged in as ${userPhone}`;
+    const phone = localStorage.getItem("phone");
+    const banner = document.getElementById("welcome-banner");
+    const logoutBtn = document.getElementById("logout-btn");
+    const loginBtn = document.getElementById("login-btn");
+
+    // 👋 Show welcome message
+    if (phone && banner) {
+      banner.textContent = `👋 Welcome back! Logged in as ${phone}`;
       banner.classList.remove("hidden");
     }
+
+    // 🔐 Show logout button
+    if (phone && logoutBtn) {
+      logoutBtn.classList.remove("hidden");
+
+      logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        alert("👋 You have been logged out");
+        window.location.href = "login.html";
+      });
+    }
+
+    // 🔒 Hide login button
+    if (phone && loginBtn) {
+      loginBtn.classList.add("hidden");
+    }
   });
-</script> <script>
-  const phone = localStorage.getItem("phone");
-  const logoutBtn = document.getElementById("logout-btn");
+</script>
 
-  if (phone && logoutBtn) {
-    logoutBtn.classList.remove("hidden"); // Show logout if logged in
-  }
-
-  logoutBtn?.addEventListener("click", () => {
-    localStorage.clear(); // Clear login info
-    alert("👋 You have been logged out");
-    window.location.href = "login.html"; // Redirect to login page
-  });
-
-</script> 
-<script>const loginBtn = document.getElementById("login-btn");
-
-if (phone && loginBtn) {
-  loginBtn.classList.add("hidden"); // Hide login if already logged in
-}
-    </script>
 </body></html>
 
