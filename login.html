@@ -89,5 +89,79 @@
       }
     });
   </script>
+<script>
+  const auth = firebase.auth();
+
+  const phoneInput = document.getElementById("phone");
+  const sendOtpBtn = document.getElementById("send-otp");
+  const otpSection = document.getElementById("otp-section");
+  const loginForm = document.getElementById("login-form");
+
+  let confirmationResult; // 🔐 To store Firebase OTP session
+
+  // ✅ STEP 1: SEND OTP
+  sendOtpBtn.addEventListener("click", async () => {
+    const phoneNumber = phoneInput.value.trim();
+
+    if (!phoneNumber.startsWith("+") || phoneNumber.length < 10) {
+      alert("❌ Please enter a valid phone number with country code (e.g. +91...)");
+      return;
+    }
+
+    // Create Recaptcha verifier (Firebase needs this)
+    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
+      size: "normal",
+      callback: () => {
+        console.log("reCAPTCHA solved ✅");
+      },
+    });
+
+    try {
+      confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier);
+      alert("✅ OTP sent to " + phoneNumber);
+      otpSection.classList.remove("hidden");
+    } catch (error) {
+      console.error(error);
+      alert("❌ Failed to send OTP");
+    }
+  });
+
+  // ✅ STEP 2: VERIFY OTP
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const otp = document.getElementById("otp").value.trim();
+
+    if (otp.length < 4) {
+      alert("❌ Please enter a valid OTP");
+      return;
+    }
+
+    try {
+      const result = await confirmationResult.confirm(otp);
+      const user = result.user;
+
+      // ✅ Save UID to localStorage
+      localStorage.setItem("userId", user.uid);
+      localStorage.setItem("phone", user.phoneNumber);
+
+      // ✅ Optional: Save to your backend
+      await fetch("https://your-backend.com/api/user/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          uid: user.uid,
+          phone: user.phoneNumber,
+        }),
+      });
+
+      alert("🎉 Welcome back, " + user.phoneNumber);
+      window.location.href = "index.html"; // redirect to home or shop
+    } catch (error) {
+      console.error(error);
+      alert("❌ OTP verification failed");
+    }
+  });
+</script>
+
 </body>
 </html>
