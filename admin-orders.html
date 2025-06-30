@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Orders | Thrift Thread</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+    }
+    .gradient-text {
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen px-4 py-6">
+
+  <h1 class="text-3xl font-bold gradient-text mb-6 text-center">🛍️ All Orders (Admin View)</h1>
+
+  <div class="overflow-x-auto">
+    <table class="min-w-full bg-white rounded-lg shadow-md">
+      <thead class="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white">
+        <tr>
+          <th class="py-3 px-4 text-left">User ID</th>
+          <th class="py-3 px-4 text-left">Items</th>
+          <th class="py-3 px-4 text-left">Total</th>
+          <th class="py-3 px-4 text-left">Shipping</th>
+          <th class="py-3 px-4 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody id="orders-table" class="text-gray-700">
+        <!-- Orders will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function fetchOrders() {
+      try {
+        const res = await fetch("https://thrifted-backend.onrender.com/api/orders");
+        const orders = await res.json();
+
+        const table = document.getElementById("orders-table");
+
+        if (!orders.length) {
+          table.innerHTML = `<tr><td colspan="5" class="text-center py-4">No orders yet 🥲</td></tr>`;
+          return;
+        }
+
+        orders.forEach(order => {
+          const items = order.items.map(item => `${item.name} (x${item.quantity})`).join(", ");
+          const row = `
+            <tr class="border-b">
+              <td class="py-3 px-4">${order.userId || 'N/A'}</td>
+              <td class="py-3 px-4">${items}</td>
+              <td class="py-3 px-4">₹${order.total || 0}</td>
+              <td class="py-3 px-4">${order.shippingAddress || 'N/A'}</td>
+              <td class="py-3 px-4">${order.status || 'Pending'}</td>
+            </tr>
+          `;
+          table.innerHTML += row;
+        });
+      } catch (err) {
+        console.error("Failed to fetch orders:", err);
+        document.getElementById("orders-table").innerHTML = `<tr><td colspan="5" class="text-center text-red-500 py-4">Failed to load orders ❌</td></tr>`;
+      }
+    }
+
+    fetchOrders();
+  </script>
+</body>
+</html>
