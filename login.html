@@ -144,15 +144,15 @@
       localStorage.setItem("userId", user.uid);
       localStorage.setItem("phone", user.phoneNumber);
 
-      // ✅ Optional: Save to your backend
-      await fetch("https://your-backend.com/api/user/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          uid: user.uid,
-          phone: user.phoneNumber,
-        }),
-      });
+      await fetch("https://thrifted-backend.onrender.com/api/user/save", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    uid: user.uid,
+    phone: user.phoneNumber,
+  }),
+});
+
 
       alert("🎉 Welcome back, " + user.phoneNumber);
       window.location.href = "index.html"; // redirect to home or shop
