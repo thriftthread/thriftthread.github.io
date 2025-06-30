@@ -112,6 +112,11 @@
     </style>
 </head>
 <body class="bg-gray-50">
+<!-- Welcome Banner -->
+<div id="welcome-banner" class="bg-indigo-600 text-white text-center py-2 text-sm font-semibold hidden">
+  Welcome, customer!
+</div>
+
     <!-- Navigation -->
     <nav class="bg-white shadow-md sticky top-0 z-50">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -1165,4 +1170,15 @@ Rimagined</p>
     window.location.href = "shop.html";
   });
 </script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const userPhone = localStorage.getItem("phone");
+    if (userPhone) {
+      const banner = document.getElementById("welcome-banner");
+      banner.textContent = `👋 Welcome back! Logged in as ${userPhone}`;
+      banner.classList.remove("hidden");
+    }
+  });
+</script>
+</body></html>
 
