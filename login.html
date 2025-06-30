@@ -20,6 +20,23 @@
       color: transparent;
     }
   </style>
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDvbnVLPRtIxl4fL4XDETxZYreBNvchY78",
+    authDomain: "thrift-thread.firebaseapp.com",
+    projectId: "thrift-thread",
+    storageBucket: "thrift-thread.firebasestorage.app",
+    messagingSenderId: "240378734497",
+    appId: "1:240378734497:web:3965162a0159761d344de0"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+</script>
+
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center">
   <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-8">
