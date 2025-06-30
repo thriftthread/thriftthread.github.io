@@ -1179,36 +1179,6 @@ Rimagined</p>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     const phone = localStorage.getItem("phone");
-    const banner = document.getElementById("welcome-banner");
-    const logoutBtn = document.getElementById("logout-btn");
-    const loginBtn = document.getElementById("login-btn");
-
-    // 👋 Show welcome message
-    if (phone && banner) {
-      banner.textContent = `👋 Welcome back! Logged in as ${phone}`;
-      banner.classList.remove("hidden");
-    }
-
-    // 🔐 Show logout button
-    if (phone && logoutBtn) {
-      logoutBtn.classList.remove("hidden");
-
-      logoutBtn.addEventListener("click", () => {
-        localStorage.clear();
-        alert("👋 You have been logged out");
-        window.location.href = "login.html";
-      });
-    }
-
-    // 🔒 Hide login button
-    if (phone && loginBtn) {
-      loginBtn.classList.add("hidden");
-    }
-  });
-</script>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const phone = localStorage.getItem("phone");
     const loginBtn = document.getElementById("login-btn");
     const logoutBtn = document.getElementById("logout-btn");
     const welcomeBanner = document.getElementById("welcome-banner");
@@ -1221,7 +1191,6 @@ Rimagined</p>
         welcomeBanner.classList.remove("hidden");
       }
 
-      // Logout logic
       logoutBtn?.addEventListener("click", () => {
         localStorage.clear();
         alert("👋 You have been logged out");
@@ -1230,6 +1199,7 @@ Rimagined</p>
     }
   });
 </script>
+
 
 </body></html>
 
