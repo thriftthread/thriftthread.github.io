@@ -97,7 +97,8 @@ window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier("recaptcha-contai
       }
 
       try {
-        const result = await confirmationResult.confirm(otp);
+        const result = await window.confirmationResult.confirm(otp);
+
         const user = result.user;
         localStorage.setItem("userId", user.uid);
         localStorage.setItem("phone", user.phoneNumber);
