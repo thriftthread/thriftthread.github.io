@@ -76,7 +76,8 @@
       });
 
       try {
-        confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier);
+        window.confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier);
+
         alert("✅ OTP sent to " + phoneNumber);
         otpSection.classList.remove("hidden");
       } catch (error) {
