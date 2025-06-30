@@ -37,11 +37,25 @@
       </tbody>
     </table>
   </div>
+<script>
+  const phone = localStorage.getItem("phone");
+  const allowedPackers = ["+919876543210"]; // 👈 Put Bhaiya’s number
+
+  if (!allowedPackers.includes(phone)) {
+    alert("⛔ You are not allowed to see orders!");
+    window.location.href = "index.html"; // Send them home
+  }
+</script>
 
   <script>
     async function fetchOrders() {
       try {
-        const res = await fetch("https://thrifted-backend.onrender.com/api/orders");
+       const res = await fetch("https://thrifted-backend.onrender.com/api/orders", {
+  headers: {
+    "x-user-phone": phone
+  }
+});
+
         const orders = await res.json();
 
         const table = document.getElementById("orders-table");
