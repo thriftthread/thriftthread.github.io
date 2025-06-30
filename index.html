@@ -141,8 +141,14 @@
                 </a>
                 <a href="#account" class="hidden md:block">
                     <i class="fas fa-user-circle text-xl text-gray-700 hover:text-gray-900"></i>
-                </a>
-                <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
+                </a> <a href="login.html" id="login-btn" class="text-sm text-blue-600 font-semibold hover:underline">
+  Login
+</a>
+
+<button id="logout-btn" class="text-sm text-red-600 font-semibold hover:underline hidden">
+  Logout
+</button>
+ <button id="mobile-menu-button" class="md:hidden text-gray-700 focus:outline-none">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
@@ -1179,6 +1185,25 @@ Rimagined</p>
       banner.classList.remove("hidden");
     }
   });
+</script> <script>
+  const phone = localStorage.getItem("phone");
+  const logoutBtn = document.getElementById("logout-btn");
+
+  if (phone && logoutBtn) {
+    logoutBtn.classList.remove("hidden"); // Show logout if logged in
+  }
+
+  logoutBtn?.addEventListener("click", () => {
+    localStorage.clear(); // Clear login info
+    alert("👋 You have been logged out");
+    window.location.href = "login.html"; // Redirect to login page
+  });
+const loginBtn = document.getElementById("login-btn");
+
+if (phone && loginBtn) {
+  loginBtn.classList.add("hidden"); // Hide login if already logged in
+}
 </script>
+
 </body></html>
 
