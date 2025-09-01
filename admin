@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outfit Requests Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .back-button {
+            background-color: white;
+            color: #6a11cb;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            background-color: #f5f5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-title {
+            font-size: 28px;
+            color: #2d3748;
+            font-weight: 700;
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #6a11cb;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f7f9fc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Editable Fields */
+        .editable {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 14px;
+            transition: border 0.3s ease;
+        }
+
+        .editable:focus {
+            outline: none;
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+        }
+
+        .status-select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .status-select:focus {
+            outline: none;
+            border-color: #6a11cb;
+        }
+
+        /* Buttons */
+        .update-btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .update-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #48bb78;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .stats-cards {
+                flex-wrap: wrap;
+            }
+            
+            .stat-card {
+                flex: 1 0 calc(50% - 15px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .stat-card {
+                flex: 1 0 100%;
+            }
+            
+            th, td {
+                padding: 12px 15px;
+            }
+            
+            .table-container {
+                border-radius: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Navbar -->
+        <nav class="navbar">
+            <div class="navbar-title">Outfit Requests Dashboard</div>
+            <button class="back-button">
+                <i class="fas fa-arrow-left"></i> Back to Shop
+            </button>
+        </nav>
+
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Outfit Request Management</h1>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-label">Total Requests</div>
+                <div class="stat-number" id="total-requests">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Pending Requests</div>
+                <div class="stat-number" id="pending-requests">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Completed Requests</div>
+                <div class="stat-number" id="completed-requests">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">In Progress</div>
+                <div class="stat-number" id="progress-requests">0</div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Stylist Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="requests-table-body">
+                    <!-- Data will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Update successful!</span>
+    </div>
+
+    <script>
+        // DOM Elements
+        const tableBody = document.getElementById('requests-table-body');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const totalRequestsEl = document.getElementById('total-requests');
+        const pendingRequestsEl = document.getElementById('pending-requests');
+        const completedRequestsEl = document.getElementById('completed-requests');
+        const progressRequestsEl = document.getElementById('progress-requests');
+
+        // Sample data for demonstration (will be replaced with API data)
+        let sampleData = [
+            {
+                _id: "1",
+                customerName: "Emily Johnson",
+                phone: "+1 (555) 123-4567",
+                status: "Pending",
+                stylistNotes: "Interested in summer dresses and accessories."
+            },
+            {
+                _id: "2",
+                customerName: "Michael Smith",
+                phone: "+1 (555) 987-6543",
+                status: "In Progress",
+                stylistNotes: "Looking for formal attire for a wedding."
+            },
+            {
+                _id: "3",
+                customerName: "Sarah Williams",
+                phone: "+1 (555) 456-7890",
+                status: "Completed",
+                stylistNotes: "Needs casual weekend outfits. Prefers neutral colors."
+            },
+            {
+                _id: "4",
+                customerName: "David Brown",
+                phone: "+1 (555) 234-5678",
+                status: "Pending",
+                stylistNotes: "Requested business casual outfits for office wear."
+            }
+        ];
+
+        // Fetch OutfitRequest entities
+        async function fetchOutfitRequestEntities() {
+            showProgressBar();
+            
+            try {
+                // In a real implementation, you would use the actual API call:
+                /*
+                const response = await fetch(`https://app.base44.com/api/apps/68ad8acadc9798fe157ff711/entities/OutfitRequest`, {
+                    headers: {
+                        'api_key': '5bef66e1844d4a8d8955555d248bab30',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                */
+                
+                // For demonstration, we'll use a timeout to simulate network request
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Using sample data for demonstration
+                const data = sampleData;
+                
+                populateTable(data);
+                updateStats(data);
+                hideProgressBar();
+                
+                return data;
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                hideProgressBar();
+                showToast('Error fetching data. Please try again.', 'error');
+            }
+        }
+
+        // Update a specific entity
+        async function updateOutfitRequestEntity(entityId, updateData) {
+            showProgressBar();
+            
+            try {
+                // In a real implementation, you would use the actual API call:
+                /*
+                const response = await fetch(`https://app.base44.com/api/apps/68ad8acadc9798fe157ff711/entities/OutfitRequest/${entityId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'api_key': '5bef66e1844d4a8d8955555d248bab30',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                const data = await response.json();
+                */
+                
+                // For demonstration, we'll use a timeout to simulate network request
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Update sample data for demonstration
+                const index = sampleData.findIndex(item => item._id === entityId);
+                if (index !== -1) {
+                    sampleData[index] = { ...sampleData[index], ...updateData };
+                }
+                
+                hideProgressBar();
+                showToast('Outfit request updated successfully!');
+                
+                // Refresh the table and stats
+                populateTable(sampleData);
+                updateStats(sampleData);
+                
+                return { success: true };
+            } catch (error) {
+                console.error('Error updating data:', error);
+                hideProgressBar();
+                showToast('Error updating data. Please try again.', 'error');
+            }
+        }
+
+        // Populate the table with data
+        function populateTable(data) {
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 30px;">
+                            No outfit requests found.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            data.forEach(entity => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td>${entity.customerName}</td>
+                    <td>${entity.phone}</td>
+                    <td>
+                        <select class="status-select" data-id="${entity._id}">
+                            <option value="Pending" ${entity.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="In Progress" ${entity.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Completed" ${entity.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                    </td>
+                    <td>
+                        <textarea class="editable stylist-notes" data-id="${entity._id}" rows="2">${entity.stylistNotes || ''}</textarea>
+                    </td>
+                    <td>
+                        <button class="update-btn" data-id="${entity._id}">
+                            <i class="fas fa-sync-alt"></i> Update
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to update buttons
+            document.querySelectorAll('.update-btn').forEach(button => {
+                button.addEventListener('click', handleUpdate);
+            });
+        }
+
+        // Handle update button click
+        function handleUpdate(event) {
+            const entityId = event.currentTarget.getAttribute('data-id');
+            const statusSelect = document.querySelector(`.status-select[data-id="${entityId}"]`);
+            const notesTextarea = document.querySelector(`.stylist-notes[data-id="${entityId}"]`);
+            
+            const updateData = {
+                status: statusSelect.value,
+                stylistNotes: notesTextarea.value
+            };
+            
+            updateOutfitRequestEntity(entityId, updateData);
+        }
+
+        // Update statistics cards
+        function updateStats(data) {
+            totalRequestsEl.textContent = data.length;
+            pendingRequestsEl.textContent = data.filter(item => item.status === 'Pending').length;
+            completedRequestsEl.textContent = data.filter(item => item.status === 'Completed').length;
+            progressRequestsEl.textContent = data.filter(item => item.status === 'In Progress').length;
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            toastMessage.textContent = message;
+            
+            if (type === 'error') {
+                toast.style.background = '#e53e3e';
+            } else {
+                toast.style.background = '#48bb78';
+            }
+            
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Progress bar functions
+        function showProgressBar() {
+            progressContainer.style.display = 'block';
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 70) {
+                    clearInterval(interval);
+                } else {
+                    width += 5;
+                    progressBar.style.width = width + '%';
+                }
+            }, 100);
+        }
+
+        function hideProgressBar() {
+            progressBar.style.width = '100%';
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+                progressBar.style.width = '0%';
+            }, 300);
+        }
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchOutfitRequestEntities();
+            
+            // Add event listener to Back to Shop button
+            document.querySelector('.back-button').addEventListener('click', function() {
+                alert('Navigating back to shop...');
+            });
+        });
+    </script>
+</body>
+</html>
