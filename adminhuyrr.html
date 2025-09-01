@@ -246,6 +246,18 @@
             gap: 10px;
         }
 
+        /* Debug Info */
+        .debug-info {
+            background: #e9f5ff;
+            color: #3182ce;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 14px;
+            display: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .stats-cards {
@@ -291,6 +303,15 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <h1 class="dashboard-title">Outfit Request Management</h1>
+            <button id="debug-toggle" class="update-btn">
+                <i class="fas fa-bug"></i> Debug
+            </button>
+        </div>
+
+        <!-- Debug Info -->
+        <div class="debug-info" id="debug-info">
+            <div><strong>API Response Structure:</strong></div>
+            <pre id="api-structure">Waiting for API response...</pre>
         </div>
 
         <!-- Error Message (initially hidden) -->
@@ -366,12 +387,20 @@
         const progressRequestsEl = document.getElementById('progress-requests');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
+        const debugInfo = document.getElementById('debug-info');
+        const apiStructure = document.getElementById('api-structure');
+        const debugToggle = document.getElementById('debug-toggle');
 
         // API Configuration
         const API_CONFIG = {
             baseURL: 'https://app.base44.com/api/apps/68ad8acadc9798fe157ff711/entities/OutfitRequest',
             apiKey: '5bef66e1844d4a8d8955555d248bab30'
         };
+
+        // Toggle debug info
+        debugToggle.addEventListener('click', () => {
+            debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
+        });
 
         // Fetch OutfitRequest entities
         async function fetchOutfitRequestEntities() {
@@ -391,6 +420,10 @@
                 }
                 
                 const data = await response.json();
+                
+                // Display API structure for debugging
+                apiStructure.textContent = JSON.stringify(data, null, 2);
+                
                 populateTable(data);
                 updateStats(data);
                 hideProgressBar();
@@ -437,6 +470,28 @@
             }
         }
 
+        // Extract customer name from entity (handles different field name possibilities)
+        function getCustomerName(entity) {
+            // Try different possible field names for customer name
+            return entity.customerName || 
+                   entity.customer || 
+                   entity.name || 
+                   entity.clientName || 
+                   entity.userName || 
+                   'Unknown Customer';
+        }
+
+        // Extract phone number from entity (handles different field name possibilities)
+        function getPhoneNumber(entity) {
+            // Try different possible field names for phone number
+            return entity.phone || 
+                   entity.phoneNumber || 
+                   entity.contact || 
+                   entity.mobile || 
+                   entity.tel || 
+                   'N/A';
+        }
+
         // Populate the table with data
         function populateTable(data) {
             tableBody.innerHTML = '';
@@ -455,11 +510,11 @@
             data.forEach(entity => {
                 const row = document.createElement('tr');
                 
-                // Ensure we have valid values for each field
-                const customerName = entity.customerName || 'N/A';
-                const phone = entity.phone || 'N/A';
+                // Extract data using flexible field name handling
+                const customerName = getCustomerName(entity);
+                const phone = getPhoneNumber(entity);
                 const status = entity.status || 'Pending';
-                const stylistNotes = entity.stylistNotes || '';
+                const stylistNotes = entity.stylistNotes || entity.notes || '';
                 
                 row.innerHTML = `
                     <td>${customerName}</td>
@@ -509,9 +564,9 @@
             if (!data) return;
             
             totalRequestsEl.textContent = data.length;
-            pendingRequestsEl.textContent = data.filter(item => item.status === 'Pending').length;
-            completedRequestsEl.textContent = data.filter(item => item.status === 'Completed').length;
-            progressRequestsEl.textContent = data.filter(item => item.status === 'In Progress').length;
+            pendingRequestsEl.textContent = data.filter(item => (item.status || 'Pending') === 'Pending').length;
+            completedRequestsEl.textContent = data.filter(item => (item.status || 'Pending') === 'Completed').length;
+            progressRequestsEl.textContent = data.filter(item => (item.status || 'Pending') === 'In Progress').length;
         }
 
         // Show toast notification
