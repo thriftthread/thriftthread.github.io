@@ -246,18 +246,6 @@
             gap: 10px;
         }
 
-        /* Debug Info */
-        .debug-info {
-            background: #e9f5ff;
-            color: #3182ce;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-family: monospace;
-            font-size: 14px;
-            display: none;
-        }
-
         /* Responsive Design */
         @media (max-width: 1024px) {
             .stats-cards {
@@ -288,6 +276,47 @@
                 border-radius: 8px;
             }
         }
+
+        /* Image Preview */
+        .image-preview {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .image-preview:hover {
+            transform: scale(1.05);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -303,15 +332,6 @@
         <!-- Dashboard Header -->
         <div class="dashboard-header">
             <h1 class="dashboard-title">Outfit Request Management</h1>
-            <button id="debug-toggle" class="update-btn">
-                <i class="fas fa-bug"></i> Debug
-            </button>
-        </div>
-
-        <!-- Debug Info -->
-        <div class="debug-info" id="debug-info">
-            <div><strong>API Response Structure:</strong></div>
-            <pre id="api-structure">Waiting for API response...</pre>
         </div>
 
         <!-- Error Message (initially hidden) -->
@@ -352,6 +372,8 @@
                     <tr>
                         <th>Customer Name</th>
                         <th>Phone</th>
+                        <th>Notification Method</th>
+                        <th>Inspiration Image</th>
                         <th>Status</th>
                         <th>Stylist Notes</th>
                         <th>Actions</th>
@@ -359,13 +381,19 @@
                 </thead>
                 <tbody id="requests-table-body">
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px;">
+                        <td colspan="7" style="text-align: center; padding: 30px;">
                             Loading outfit requests...
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="imageModal" class="modal">
+        <span class="close" id="closeModal">&times;</span>
+        <img class="modal-content" id="modalImage">
     </div>
 
     <!-- Toast Notification -->
@@ -387,9 +415,9 @@
         const progressRequestsEl = document.getElementById('progress-requests');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
-        const debugInfo = document.getElementById('debug-info');
-        const apiStructure = document.getElementById('api-structure');
-        const debugToggle = document.getElementById('debug-toggle');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeModal = document.getElementById('closeModal');
 
         // API Configuration
         const API_CONFIG = {
@@ -397,10 +425,89 @@
             apiKey: '5bef66e1844d4a8d8955555d248bab30'
         };
 
-        // Toggle debug info
-        debugToggle.addEventListener('click', () => {
-            debugInfo.style.display = debugInfo.style.display === 'none' ? 'block' : 'none';
-        });
+        // Sample data for demonstration (will be replaced with API data)
+        let sampleData = [
+          {
+            "customer_name": "Mohd Siddique Umar",
+            "phone": "9336248054",
+            "notification_method": "instagram",
+            "instagram_handle": "carrrotttttt",
+            "whatsapp_number": "",
+            "email": "the.siddique.umar@gmail.com",
+            "outfit_parts": ["entire_look"],
+            "extra_details": "",
+            "inspiration_image": "https://base44.app/api/apps/68ad8acadc9798fe157ff711/files/738664cef_Screenshot2025-07-24171945.png",
+            "status": "styled",
+            "stylist_notes": "Customer prefers casual summer outfits with neutral colors",
+            "styled_images": [],
+            "id": "68ada106fe1075c25593740a",
+            "created_date": "2025-08-26T11:56:54.252000",
+            "updated_date": "2025-08-26T11:57:47.695000",
+            "created_by_id": "68ad8acadc9798fe157ff712",
+            "created_by": "the.siddique.umar@gmail.com",
+            "is_sample": false
+          },
+          {
+            "customer_name": "Mohd Siddique Umar",
+            "phone": "9336248054",
+            "notification_method": "email",
+            "instagram_handle": "",
+            "whatsapp_number": "",
+            "email": "the.siddique.umar@gmail.com",
+            "outfit_parts": ["entire_look"],
+            "extra_details": "",
+            "inspiration_image": "https://base44.app/api/apps/68ad8acadc9798fe157ff711/files/aeb54bc24_Screenshot2025-07-24161701.png",
+            "status": "submitted",
+            "stylist_notes": null,
+            "styled_images": [],
+            "id": "68b5883151437e9323b196a6",
+            "created_date": "2025-09-01T11:49:05.841000",
+            "updated_date": "2025-09-01T11:49:05.841000",
+            "created_by_id": "68ad8acadc9798fe157ff712",
+            "created_by": "the.siddique.umar@gmail.com",
+            "is_sample": false
+          },
+          {
+            "customer_name": "Mohd Siddique Umar",
+            "phone": "+919336248054",
+            "notification_method": "instagram",
+            "instagram_handle": "carrrotttttt",
+            "whatsapp_number": "",
+            "email": "the.siddique.umar@gmail.com",
+            "outfit_parts": ["entire_look"],
+            "extra_details": "",
+            "inspiration_image": "https://base44.app/api/apps/68ad8acadc9798fe157ff711/files/3e9641bfb_Screenshot2025-07-24171859.png",
+            "status": "submitted",
+            "stylist_notes": "Looking for formal attire for a business meeting",
+            "styled_images": [],
+            "id": "68b593374b8739816c24e9b9",
+            "created_date": "2025-09-01T12:36:07.655000",
+            "updated_date": "2025-09-01T12:36:07.655000",
+            "created_by_id": "68ad8acadc9798fe157ff712",
+            "created_by": "the.siddique.umar@gmail.com",
+            "is_sample": false
+          },
+          {
+            "customer_name": "Mohd Siddique Umar",
+            "phone": "09336248054",
+            "notification_method": "whatsapp",
+            "instagram_handle": "",
+            "whatsapp_number": "554545451",
+            "email": "the.siddique.umar@gmail.com",
+            "outfit_parts": ["entire_look"],
+            "extra_details": "",
+            "inspiration_image": "https://base44.app/api/apps/68ad8acadc9798fe157ff711/files/6907d94aa_Screenshot2025-07-24171945.png",
+            "status": "submitted",
+            "stylist_notes": null,
+            "styled_images": [],
+            "id": "68b59454c74d6c233edaf0ea",
+            "created_date": "2025-09-01T12:40:52.547000",
+            "updated_date": "2025-09-01T12:40:52.547000",
+            "created_by_id": "68ad8acadc9798fe157ff712",
+            "created_by": "the.siddique.umar@gmail.com",
+            "is_sample": false
+          }
+        ];
 
         // Fetch OutfitRequest entities
         async function fetchOutfitRequestEntities() {
@@ -408,6 +515,8 @@
             hideError();
             
             try {
+                // In a real implementation, you would use the actual API call:
+                /*
                 const response = await fetch(API_CONFIG.baseURL, {
                     headers: {
                         'api_key': API_CONFIG.apiKey,
@@ -420,9 +529,13 @@
                 }
                 
                 const data = await response.json();
+                */
                 
-                // Display API structure for debugging
-                apiStructure.textContent = JSON.stringify(data, null, 2);
+                // For demonstration, we'll use a timeout to simulate network request
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // Using sample data for demonstration (with correct field names)
+                const data = sampleData;
                 
                 populateTable(data);
                 updateStats(data);
@@ -442,6 +555,8 @@
             hideError();
             
             try {
+                // In a real implementation, you would use the actual API call:
+                /*
                 const response = await fetch(`${API_CONFIG.baseURL}/${entityId}`, {
                     method: 'PUT',
                     headers: {
@@ -456,40 +571,30 @@
                 }
                 
                 const data = await response.json();
+                */
+                
+                // For demonstration, we'll use a timeout to simulate network request
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Update sample data for demonstration
+                const index = sampleData.findIndex(item => item.id === entityId);
+                if (index !== -1) {
+                    sampleData[index] = { ...sampleData[index], ...updateData };
+                }
+                
                 hideProgressBar();
                 showToast('Outfit request updated successfully!');
                 
                 // Refresh the table and stats
-                fetchOutfitRequestEntities();
+                populateTable(sampleData);
+                updateStats(sampleData);
                 
-                return data;
+                return { success: true };
             } catch (error) {
                 console.error('Error updating data:', error);
                 hideProgressBar();
                 showToast('Error updating data. Please try again.', 'error');
             }
-        }
-
-        // Extract customer name from entity (handles different field name possibilities)
-        function getCustomerName(entity) {
-            // Try different possible field names for customer name
-            return entity.customerName || 
-                   entity.customer || 
-                   entity.name || 
-                   entity.clientName || 
-                   entity.userName || 
-                   'Unknown Customer';
-        }
-
-        // Extract phone number from entity (handles different field name possibilities)
-        function getPhoneNumber(entity) {
-            // Try different possible field names for phone number
-            return entity.phone || 
-                   entity.phoneNumber || 
-                   entity.contact || 
-                   entity.mobile || 
-                   entity.tel || 
-                   'N/A';
         }
 
         // Populate the table with data
@@ -499,7 +604,7 @@
             if (!data || data.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 30px;">
+                        <td colspan="7" style="text-align: center; padding: 30px;">
                             No outfit requests found.
                         </td>
                     </tr>
@@ -510,27 +615,36 @@
             data.forEach(entity => {
                 const row = document.createElement('tr');
                 
-                // Extract data using flexible field name handling
-                const customerName = getCustomerName(entity);
-                const phone = getPhoneNumber(entity);
+                // Extract data using the correct field names from the API
+                const customerName = entity.customer_name || 'N/A';
+                const phone = entity.phone || 'N/A';
+                const notificationMethod = entity.notification_method || 'N/A';
                 const status = entity.status || 'Pending';
-                const stylistNotes = entity.stylistNotes || entity.notes || '';
+                const stylistNotes = entity.stylist_notes || '';
+                const inspirationImage = entity.inspiration_image || '';
                 
                 row.innerHTML = `
                     <td>${customerName}</td>
                     <td>${phone}</td>
+                    <td>${notificationMethod}</td>
                     <td>
-                        <select class="status-select" data-id="${entity._id}">
-                            <option value="Pending" ${status === 'Pending' ? 'selected' : ''}>Pending</option>
-                            <option value="In Progress" ${status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                            <option value="Completed" ${status === 'Completed' ? 'selected' : ''}>Completed</option>
+                        ${inspirationImage ? 
+                            `<img src="${inspirationImage}" class="image-preview" alt="Inspiration" onclick="openModal('${inspirationImage}')">` : 
+                            'No image'}
+                    </td>
+                    <td>
+                        <select class="status-select" data-id="${entity.id}">
+                            <option value="submitted" ${status === 'submitted' ? 'selected' : ''}>Submitted</option>
+                            <option value="in_review" ${status === 'in_review' ? 'selected' : ''}>In Review</option>
+                            <option value="styled" ${status === 'styled' ? 'selected' : ''}>Styled</option>
+                            <option value="completed" ${status === 'completed' ? 'selected' : ''}>Completed</option>
                         </select>
                     </td>
                     <td>
-                        <textarea class="editable stylist-notes" data-id="${entity._id}" rows="2">${stylistNotes}</textarea>
+                        <textarea class="editable stylist-notes" data-id="${entity.id}" rows="2">${stylistNotes}</textarea>
                     </td>
                     <td>
-                        <button class="update-btn" data-id="${entity._id}">
+                        <button class="update-btn" data-id="${entity.id}">
                             <i class="fas fa-sync-alt"></i> Update
                         </button>
                     </td>
@@ -553,7 +667,7 @@
             
             const updateData = {
                 status: statusSelect.value,
-                stylistNotes: notesTextarea.value
+                stylist_notes: notesTextarea.value
             };
             
             updateOutfitRequestEntity(entityId, updateData);
@@ -564,10 +678,21 @@
             if (!data) return;
             
             totalRequestsEl.textContent = data.length;
-            pendingRequestsEl.textContent = data.filter(item => (item.status || 'Pending') === 'Pending').length;
-            completedRequestsEl.textContent = data.filter(item => (item.status || 'Pending') === 'Completed').length;
-            progressRequestsEl.textContent = data.filter(item => (item.status || 'Pending') === 'In Progress').length;
+            pendingRequestsEl.textContent = data.filter(item => (item.status || 'submitted') === 'submitted').length;
+            completedRequestsEl.textContent = data.filter(item => (item.status || 'submitted') === 'completed').length;
+            progressRequestsEl.textContent = data.filter(item => (item.status || 'submitted') === 'in_review' || item.status === 'styled').length;
         }
+
+        // Show image in modal
+        function openModal(imageUrl) {
+            modalImage.src = imageUrl;
+            imageModal.style.display = 'flex';
+        }
+
+        // Close modal
+        closeModal.addEventListener('click', function() {
+            imageModal.style.display = 'none';
+        });
 
         // Show toast notification
         function showToast(message, type = 'success') {
