@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Money Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 10px; }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .flex { display: flex; gap: 15px; flex-wrap: wrap; }
+    .flex > div { flex: 1; min-width: 250px; }
+    label { font-size: 14px; }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background: #1e4fd6; }
+    .balance {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .warn { color: #dc2626; font-weight: bold; }
+    ul { padding-left: 18px; }
+  </style>
+</head>
+<body>
+
+<h1>💰 Simple Money Tracker</h1>
+
+<div class="card">
+  <label>Total Available Money (₹)</label>
+  <input type="number" id="startingMoney" placeholder="Enter total money" />
+  <button onclick="setMoney()">Save</button>
+  <p class="balance">Remaining Balance: ₹<span id="balance">0</span></p>
+</div>
+
+<div class="card">
+  <h3>Add Expense</h3>
+  <label>Amount (₹)</label>
+  <input type="number" id="amount" />
+
+  <label>Category</label>
+  <select id="category"></select>
+
+  <label>New Category (optional)</label>
+  <input type="text" id="newCategory" placeholder="e.g. Medical" />
+
+  <button onclick="addExpense()">Add Expense</button>
+</div>
+
+<div class="flex">
+  <div class="card">
+    <h3>Expenses Summary</h3>
+    <ul id="expenseList"></ul>
+  </div>
+
+  <div class="card">
+    <h3>Spending Distribution</h3>
+    <canvas id="pieChart"></canvas>
+    <p id="overspend"></p>
+  </div>
+</div>
+
+<script>
+  let data = JSON.parse(localStorage.getItem('moneyTracker')) || {
+    startingMoney: 0,
+    expenses: [],
+    categories: ['Food','Street Food','Groceries','Travel','Education','Entertainment','Bills','Rent','Mobile Recharge','Internet','Electricity','Water','Medical','Shopping','Fuel','Subscriptions','Gifts','Savings','Emergency','Miscellaneous']
+  };
+
+  const balanceEl = document.getElementById('balance');
+  const categoryEl = document.getElementById('category');
+  const expenseList = document.getElementById('expenseList');
+  let chart;
+
+  function save() {
+    localStorage.setItem('moneyTracker', JSON.stringify(data));
+  }
+
+  function setMoney() {
+    data.startingMoney = Number(document.getElementById('startingMoney').value);
+    save();
+    render();
+  }
+
+  function addExpense() {
+    const amount = Number(document.getElementById('amount').value);
+    let category = categoryEl.value;
+    const newCat = document.getElementById('newCategory').value.trim();
+
+    if (newCat) {
+      if (!data.categories.includes(newCat)) data.categories.push(newCat);
+      category = newCat;
+    }
+
+    if (!amount || amount <= 0 || !category) return;
+
+    const spent = data.expenses.reduce((s,e)=>s+e.amount,0);
+    const remaining = data.startingMoney - spent;
+
+    if (amount > remaining) {
+      alert('❌ Expense exceeds remaining balance!');
+      return;
+    }
+
+    data.expenses.push({ amount, category, date: new Date() });
+    save();
+    document.getElementById('amount').value = '';
+    document.getElementById('newCategory').value = '';
+    render();
+  }
+
+  function renderCategories() {
+    categoryEl.innerHTML = '';
+    data.categories.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      opt.textContent = c;
+      categoryEl.appendChild(opt);
+    });
+  }
+
+  function render() {
+    renderCategories();
+
+    const spent = data.expenses.reduce((s,e)=>s+e.amount,0);
+    const balance = data.startingMoney - spent;
+    balanceEl.textContent = balance;
+
+    expenseList.innerHTML = '';
+    const totals = {};
+
+    data.expenses.forEach(e => {
+      totals[e.category] = (totals[e.category]||0) + e.amount;
+      const li = document.createElement('li');
+      li.textContent = `₹${e.amount} - ${e.category}`;
+      expenseList.appendChild(li);
+    });
+
+    const labels = Object.keys(totals);
+    const values = Object.values(totals);
+
+    if (chart) chart.destroy();
+    chart = new Chart(document.getElementById('pieChart'), {
+      type: 'pie',
+      data: { labels, datasets: [{ data: values }] }
+    });
+
+    const streetFood = totals['Street Food'] || 0;
+    if (streetFood > spent * 0.3) {
+      document.getElementById('overspend').innerHTML =
+        '<span class="warn">Overspending on Street Food! Try reducing it.</span>';
+    } else {
+      document.getElementById('overspend').textContent = '';
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>
