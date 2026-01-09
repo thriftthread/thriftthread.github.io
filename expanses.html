@@ -1,184 +1,145 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Money Tracker</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 { margin-bottom: 10px; }
-    .card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-    .flex { display: flex; gap: 15px; flex-wrap: wrap; }
-    .flex > div { flex: 1; min-width: 250px; }
-    label { font-size: 14px; }
-    input, select, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      margin-bottom: 10px;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover { background: #1e4fd6; }
-    .balance {
-      font-size: 20px;
-      font-weight: bold;
-    }
-    .warn { color: #dc2626; font-weight: bold; }
-    ul { padding-left: 18px; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Household Money Tracker</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{font-family:Arial;background:#f4f6f8;padding:15px}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
+input,select,button{width:100%;padding:8px;margin-top:6px}
+button{background:#2563eb;color:#fff;border:none;border-radius:6px}
+.warn{color:#dc2626;font-weight:bold}
+.flex{display:flex;gap:10px;flex-wrap:wrap}
+.flex>div{flex:1;min-width:260px}
+</style>
 </head>
 <body>
-
-<h1>💰 Simple Money Tracker</h1>
+<h2>🏠 Household Money Tracker</h2>
 
 <div class="card">
-  <label>Total Available Money (₹)</label>
-  <input type="number" id="startingMoney" placeholder="Enter total money" />
-  <button onclick="setMoney()">Save</button>
-  <p class="balance">Remaining Balance: ₹<span id="balance">0</span></p>
+<label>Total House Money (₹)</label>
+<input id="totalMoney" type="number" />
+<button onclick="setTotal()">Save</button>
+<h3>Remaining Balance: ₹<span id="balance">0</span></h3>
 </div>
 
 <div class="card">
-  <h3>Add Expense</h3>
-  <label>Amount (₹)</label>
-  <input type="number" id="amount" />
+<h3>Add Expense</h3>
+<label>Who Spent</label>
+<input id="user" placeholder="Name" />
 
-  <label>Category</label>
-  <select id="category"></select>
+<label>Amount Spent (₹)</label>
+<input id="spent" type="number" placeholder="e.g. 150" />
 
-  <label>New Category (optional)</label>
-  <input type="text" id="newCategory" placeholder="e.g. Medical" />
+<label>Change Returned (₹) (after coming home)</label>
+<input id="change" type="number" placeholder="e.g. 60" />
 
-  <button onclick="addExpense()">Add Expense</button>
+<label>Category</label>
+<select id="category"></select>
+
+<button onclick="addExpense()">Add Expense</button>
+<p id="error" class="warn"></p>
 </div>
 
 <div class="flex">
-  <div class="card">
-    <h3>Expenses Summary</h3>
-    <ul id="expenseList"></ul>
-  </div>
-
-  <div class="card">
-    <h3>Spending Distribution</h3>
-    <canvas id="pieChart"></canvas>
-    <p id="overspend"></p>
-  </div>
+<div class="card"><canvas id="pie"></canvas></div>
+<div class="card"><h3>Reports</h3><p id="daily"></p><p id="weekly"></p><p id="monthly"></p></div>
 </div>
 
-<script>
-  let data = JSON.parse(localStorage.getItem('moneyTracker')) || {
-    startingMoney: 0,
-    expenses: [],
-    categories: ['Food','Street Food','Groceries','Travel','Education','Entertainment','Bills','Rent','Mobile Recharge','Internet','Electricity','Water','Medical','Shopping','Fuel','Subscriptions','Gifts','Savings','Emergency','Miscellaneous']
-  };
+<div class="card">
+<h3>Export</h3>
+<button onclick="exportCSV()">Export to Excel (CSV)</button>
+</div>
 
-  const balanceEl = document.getElementById('balance');
-  const categoryEl = document.getElementById('category');
-  const expenseList = document.getElementById('expenseList');
-  let chart;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  function save() {
-    localStorage.setItem('moneyTracker', JSON.stringify(data));
-  }
+const firebaseConfig = {
+  apiKey: "AIzaSyAPn0C5umD3bkO6eMb39JfTsU5g2jTZ_ng",
+  authDomain: "expanse-e8e8c.firebaseapp.com",
+  projectId: "expanse-e8e8c",
+  storageBucket: "expanse-e8e8c.firebasestorage.app",
+  messagingSenderId: "132890161638",
+  appId: "1:132890161638:web:26aba4dd5f2c15bd1be627"
+};
 
-  function setMoney() {
-    data.startingMoney = Number(document.getElementById('startingMoney').value);
-    save();
-    render();
-  }
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-  function addExpense() {
-    const amount = Number(document.getElementById('amount').value);
-    let category = categoryEl.value;
-    const newCat = document.getElementById('newCategory').value.trim();
+// Offline + Auto Sync
+enableIndexedDbPersistence(db).catch(()=>{});
 
-    if (newCat) {
-      if (!data.categories.includes(newCat)) data.categories.push(newCat);
-      category = newCat;
-    }
+const categories = ['Food','Street Food','Groceries','Bills','Rent','Travel','Education','Medical','Fuel','Shopping','Emergency','Misc'];
+categories.forEach(c=>category.appendChild(new Option(c,c)));
 
-    if (!amount || amount <= 0 || !category) return;
+let expenses=[]; let chart;
 
-    const spent = data.expenses.reduce((s,e)=>s+e.amount,0);
-    const remaining = data.startingMoney - spent;
+async function setTotal(){ await setDoc(doc(db,'meta','money'),{total:Number(totalMoney.value)}); }
 
-    if (amount > remaining) {
-      alert('❌ Expense exceeds remaining balance!');
-      return;
-    }
+async function addExpense(){
+ const name=user.value||'Unknown';
+ const spentAmt=Number(spent.value);
+ const changeAmt=Number(change.value)||0;
+ const actual=spentAmt;
 
-    data.expenses.push({ amount, category, date: new Date() });
-    save();
-    document.getElementById('amount').value = '';
-    document.getElementById('newCategory').value = '';
-    render();
-  }
+ if(actual<=0){error.textContent='Invalid spent amount';return;}
 
-  function renderCategories() {
-    categoryEl.innerHTML = '';
-    data.categories.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      categoryEl.appendChild(opt);
-    });
-  }
+ const meta=await getDoc(doc(db,'meta','money'));
+ const total=meta.data().total||0;
+ let spentTotal=expenses.reduce((s,e)=>s+e.amount,0);
 
-  function render() {
-    renderCategories();
+ if(actual>total-spentTotal){error.textContent='Not enough balance';return;}
+ error.textContent='';
 
-    const spent = data.expenses.reduce((s,e)=>s+e.amount,0);
-    const balance = data.startingMoney - spent;
-    balanceEl.textContent = balance;
+ await addDoc(collection(db,'expenses'),{
+  user:name,
+  amount:actual,
+  change:changeAmt,
+  category:category.value,
+  date:new Date()
+ });(collection(db,'expenses'),{
+  user:name,
+  amount:actual,
+  taken:takenAmt,
+  change:changeAmt,
+  category:category.value,
+  date:new Date()
+ });
 
-    expenseList.innerHTML = '';
-    const totals = {};
+ change.value='';
+}
 
-    data.expenses.forEach(e => {
-      totals[e.category] = (totals[e.category]||0) + e.amount;
-      const li = document.createElement('li');
-      li.textContent = `₹${e.amount} - ${e.category}`;
-      expenseList.appendChild(li);
-    });
+onSnapshot(collection(db,'expenses'),snap=>{expenses=[];snap.forEach(d=>expenses.push(d.data()));render();});
+onSnapshot(doc(db,'meta','money'),d=>{if(d.exists()){balance.textContent=d.data().total-expenses.reduce((s,e)=>s+e.amount,0);}});
 
-    const labels = Object.keys(totals);
-    const values = Object.values(totals);
+function render(){
+ let totals={};
+ expenses.forEach(e=>totals[e.category]=(totals[e.category]||0)+e.amount);
+ if(chart)chart.destroy();
+ chart=new Chart(pie,{type:'pie',data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals)}]}});
 
-    if (chart) chart.destroy();
-    chart = new Chart(document.getElementById('pieChart'), {
-      type: 'pie',
-      data: { labels, datasets: [{ data: values }] }
-    });
+ const now=new Date();
+ const day=expenses.filter(e=>new Date(e.date).toDateString()==now.toDateString()).reduce((s,e)=>s+e.amount,0);
+ const week=expenses.filter(e=>(now-new Date(e.date))<=7*864e5).reduce((s,e)=>s+e.amount,0);
+ const month=expenses.filter(e=>new Date(e.date).getMonth()==now.getMonth()).reduce((s,e)=>s+e.amount,0);
+ daily.textContent='Today: ₹'+day;
+ weekly.textContent='This week: ₹'+week;
+ monthly.textContent='This month: ₹'+month;
+}
 
-    const streetFood = totals['Street Food'] || 0;
-    if (streetFood > spent * 0.3) {
-      document.getElementById('overspend').innerHTML =
-        '<span class="warn">Overspending on Street Food! Try reducing it.</span>';
-    } else {
-      document.getElementById('overspend').textContent = '';
-    }
-  }
-
-  render();
+function exportCSV(){
+ let csv='User,Amount,Category,Date\n';
+ expenses.forEach(e=>csv+=`${e.user},${e.amount},${e.category},${new Date(e.date).toLocaleString()}\n`);
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([csv]));
+ a.download='house-expenses.csv';
+ a.click();
+}
 </script>
-
 </body>
 </html>
