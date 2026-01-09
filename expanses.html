@@ -2,57 +2,437 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <title>Household Money Tracker</title>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:15px}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
-input,select,button{width:100%;padding:8px;margin-top:6px}
-button{background:#2563eb;color:#fff;border:none;border-radius:6px}
-.warn{color:#dc2626;font-weight:bold}
-.flex{display:flex;gap:10px;flex-wrap:wrap}
-.flex>div{flex:1;min-width:260px}
+/* Base Styles - Mobile First */
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary: #8b5cf6;
+  --success: #059669;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --light: #f8fafc;
+  --dark: #1e293b;
+  --gray: #64748b;
+  --radius: 12px;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
+  background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+  color: var(--dark);
+  line-height: 1.5;
+  padding: 16px;
+  min-height: 100vh;
+}
+
+/* Typography */
+h2 {
+  color: var(--dark);
+  text-align: center;
+  margin: 0 0 24px 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding: 8px;
+}
+
+h3 {
+  color: var(--dark);
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  border-radius: 2px;
+}
+
+/* Card Layout */
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 18px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+input, select {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: var(--radius);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: white;
+  color: var(--dark);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+input::placeholder {
+  color: #94a3b8;
+}
+
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%232563eb' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* Buttons */
+button {
+  width: 100%;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  letter-spacing: 0.5px;
+}
+
+button:hover {
+  background: linear-gradient(135deg, var(--primary-dark), #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Balance Display */
+#balance {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--success);
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+  padding: 15px;
+  border-radius: var(--radius);
+  border: 2px solid #86efac;
+}
+
+/* Error Messages */
+.warn {
+  color: var(--danger);
+  background: #fee2e2;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-top: 15px;
+  font-weight: 500;
+  border-left: 4px solid var(--danger);
+}
+
+/* Reports Section */
+#daily, #weekly, #monthly {
+  background: var(--light);
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#daily {
+  border-left: 4px solid #3b82f6;
+}
+#weekly {
+  border-left: 4px solid #8b5cf6;
+}
+#monthly {
+  border-left: 4px solid #10b981;
+}
+
+/* Chart Container */
+.chart-container {
+  position: relative;
+  height: 280px;
+  width: 100%;
+}
+
+/* Flex Layout */
+.flex {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.flex > div {
+  width: 100%;
+}
+
+/* Export Button Special */
+.export-btn {
+  background: linear-gradient(135deg, var(--success), #047857);
+}
+
+.export-btn:hover {
+  background: linear-gradient(135deg, #047857, #065f46);
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  body {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  h2 {
+    font-size: 2.2rem;
+    margin-bottom: 32px;
+  }
+  
+  .card {
+    padding: 24px;
+  }
+  
+  .flex {
+    flex-direction: row;
+    gap: 24px;
+  }
+  
+  .flex > div {
+    flex: 1;
+  }
+  
+  #balance {
+    font-size: 2.8rem;
+  }
+  
+  .chart-container {
+    height: 320px;
+  }
+}
+
+@media (min-width: 1024px) {
+  h2 {
+    font-size: 2.5rem;
+  }
+  
+  .card {
+    padding: 28px;
+  }
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 480px) {
+  body {
+    padding: 12px;
+  }
+  
+  .card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  input, select, button {
+    padding: 16px 14px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  button {
+    padding: 18px 20px;
+  }
+  
+  #balance {
+    font-size: 1.8rem;
+    padding: 12px;
+  }
+  
+  h2 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+  
+  h3 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Loading State */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Animation for balance updates */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 0.5s ease;
+}
+
+/* Hide number input spinners on mobile */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* Better touch targets */
+@media (hover: none) and (pointer: coarse) {
+  button, input, select {
+    min-height: 48px;
+  }
+  
+  .card {
+    margin-bottom: 16px;
+  }
+}
 </style>
 </head>
 <body>
 <h2>🏠 Household Money Tracker</h2>
 
 <div class="card">
-<label>Total House Money (₹)</label>
-<input id="totalMoney" type="number" />
-<button onclick="setTotal()">Save</button>
-<h3>Remaining Balance: ₹<span id="balance">0</span></h3>
+  <div class="form-group">
+    <label>Total House Money (₹)</label>
+    <input id="totalMoney" type="number" placeholder="Enter total amount" />
+  </div>
+  <button onclick="setTotal()">💰 Save Total Amount</button>
+  <h3>Remaining Balance</h3>
+  <div id="balance">0</div>
 </div>
 
 <div class="card">
-<h3>Add Expense</h3>
-<label>Who Spent</label>
-<input id="user" placeholder="Name" />
-
-<label>Amount Spent (₹)</label>
-<input id="spent" type="number" placeholder="e.g. 150" />
-
-<label>Change Returned (₹) (after coming home)</label>
-<input id="change" type="number" placeholder="e.g. 60" />
-
-<label>Category</label>
-<select id="category"></select>
-
-<button onclick="addExpense()">Add Expense</button>
-<p id="error" class="warn"></p>
+  <h3>➕ Add Expense</h3>
+  <div class="form-group">
+    <label>Who Spent</label>
+    <input id="user" placeholder="Enter name" />
+  </div>
+  
+  <div class="form-group">
+    <label>Amount Spent (₹)</label>
+    <input id="spent" type="number" placeholder="e.g. 150" />
+  </div>
+  
+  <div class="form-group">
+    <label>Change Returned (₹)</label>
+    <input id="change" type="number" placeholder="e.g. 60" />
+    <small style="color: var(--gray); font-size: 0.85rem; margin-top: 4px;">Amount returned after purchase</small>
+  </div>
+  
+  <div class="form-group">
+    <label>Category</label>
+    <select id="category"></select>
+  </div>
+  
+  <button onclick="addExpense()">➕ Add Expense</button>
+  <p id="error" class="warn"></p>
 </div>
 
 <div class="flex">
-<div class="card"><canvas id="pie"></canvas></div>
-<div class="card"><h3>Reports</h3><p id="daily"></p><p id="weekly"></p><p id="monthly"></p></div>
+  <div class="card">
+    <h3>📊 Expense Distribution</h3>
+    <div class="chart-container">
+      <canvas id="pie"></canvas>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📈 Reports</h3>
+    <p id="daily">Today: ₹0</p>
+    <p id="weekly">This week: ₹0</p>
+    <p id="monthly">This month: ₹0</p>
+  </div>
 </div>
 
 <div class="card">
-<h3>Export</h3>
-<button onclick="exportCSV()">Export to Excel (CSV)</button>
+  <h3>📤 Export Data</h3>
+  <button class="export-btn" onclick="exportCSV()">📥 Export to CSV</button>
 </div>
 
 <script type="module">
@@ -72,74 +452,262 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Offline + Auto Sync
-enableIndexedDbPersistence(db).catch(()=>{});
+enableIndexedDbPersistence(db).catch((err) => {
+  console.warn("Offline persistence not supported:", err);
+});
 
-const categories = ['Food','Street Food','Groceries','Bills','Rent','Travel','Education','Medical','Fuel','Shopping','Emergency','Misc'];
-categories.forEach(c=>category.appendChild(new Option(c,c)));
+// Initialize categories
+const categories = ['Food', 'Street Food', 'Groceries', 'Bills', 'Rent', 'Travel', 'Education', 'Medical', 'Fuel', 'Shopping', 'Emergency', 'Misc'];
+const categorySelect = document.getElementById('category');
+categories.forEach(c => categorySelect.appendChild(new Option(c, c)));
 
-let expenses=[]; let chart;
+let expenses = []; 
+let chart;
 
-async function setTotal(){ await setDoc(doc(db,'meta','money'),{total:Number(totalMoney.value)}); }
-
-async function addExpense(){
- const name=user.value||'Unknown';
- const spentAmt=Number(spent.value);
- const changeAmt=Number(change.value)||0;
- const actual=spentAmt;
-
- if(actual<=0){error.textContent='Invalid spent amount';return;}
-
- const meta=await getDoc(doc(db,'meta','money'));
- const total=meta.data().total||0;
- let spentTotal=expenses.reduce((s,e)=>s+e.amount,0);
-
- if(actual>total-spentTotal){error.textContent='Not enough balance';return;}
- error.textContent='';
-
- await addDoc(collection(db,'expenses'),{
-  user:name,
-  amount:actual,
-  change:changeAmt,
-  category:category.value,
-  date:new Date()
- });(collection(db,'expenses'),{
-  user:name,
-  amount:actual,
-  taken:takenAmt,
-  change:changeAmt,
-  category:category.value,
-  date:new Date()
- });
-
- change.value='';
+// Set total house money
+async function setTotal() {
+  const total = Number(totalMoney.value);
+  if (!total || total <= 0) {
+    showError('Please enter a valid total amount');
+    return;
+  }
+  
+  const button = event.target;
+  const originalText = button.textContent;
+  button.textContent = 'Saving...';
+  button.classList.add('loading');
+  
+  try {
+    await setDoc(doc(db, 'meta', 'money'), { total: total });
+    totalMoney.value = '';
+    showSuccess('Total amount saved successfully!');
+  } catch (error) {
+    showError('Failed to save total amount: ' + error.message);
+  } finally {
+    button.textContent = originalText;
+    button.classList.remove('loading');
+  }
 }
 
-onSnapshot(collection(db,'expenses'),snap=>{expenses=[];snap.forEach(d=>expenses.push(d.data()));render();});
-onSnapshot(doc(db,'meta','money'),d=>{if(d.exists()){balance.textContent=d.data().total-expenses.reduce((s,e)=>s+e.amount,0);}});
-
-function render(){
- let totals={};
- expenses.forEach(e=>totals[e.category]=(totals[e.category]||0)+e.amount);
- if(chart)chart.destroy();
- chart=new Chart(pie,{type:'pie',data:{labels:Object.keys(totals),datasets:[{data:Object.values(totals)}]}});
-
- const now=new Date();
- const day=expenses.filter(e=>new Date(e.date).toDateString()==now.toDateString()).reduce((s,e)=>s+e.amount,0);
- const week=expenses.filter(e=>(now-new Date(e.date))<=7*864e5).reduce((s,e)=>s+e.amount,0);
- const month=expenses.filter(e=>new Date(e.date).getMonth()==now.getMonth()).reduce((s,e)=>s+e.amount,0);
- daily.textContent='Today: ₹'+day;
- weekly.textContent='This week: ₹'+week;
- monthly.textContent='This month: ₹'+month;
+// Add expense
+async function addExpense() {
+  const name = user.value.trim() || 'Unknown';
+  const spentAmt = Number(spent.value);
+  const changeAmt = Number(change.value) || 0;
+  
+  // Validation
+  if (!spentAmt || spentAmt <= 0) {
+    showError('Please enter a valid spent amount');
+    spent.focus();
+    return;
+  }
+  
+  if (changeAmt >= spentAmt) {
+    showError('Change cannot be greater than or equal to spent amount');
+    change.focus();
+    return;
+  }
+  
+  const button = event.target;
+  const originalText = button.textContent;
+  button.textContent = 'Adding...';
+  button.classList.add('loading');
+  
+  try {
+    // Check balance
+    const meta = await getDoc(doc(db, 'meta', 'money'));
+    const total = meta.exists() ? meta.data().total || 0 : 0;
+    const spentTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
+    
+    if (spentAmt > total - spentTotal) {
+      showError('Not enough balance!');
+      return;
+    }
+    
+    // Add expense to Firestore
+    await addDoc(collection(db, 'expenses'), {
+      user: name,
+      amount: spentAmt,
+      change: changeAmt,
+      category: categorySelect.value,
+      date: new Date()
+    });
+    
+    // Clear form
+    spent.value = '';
+    change.value = '';
+    user.value = '';
+    showSuccess('Expense added successfully!');
+    
+  } catch (error) {
+    showError('Failed to add expense: ' + error.message);
+  } finally {
+    button.textContent = originalText;
+    button.classList.remove('loading');
+  }
 }
 
-function exportCSV(){
- let csv='User,Amount,Category,Date\n';
- expenses.forEach(e=>csv+=`${e.user},${e.amount},${e.category},${new Date(e.date).toLocaleString()}\n`);
- const a=document.createElement('a');
- a.href=URL.createObjectURL(new Blob([csv]));
- a.download='house-expenses.csv';
- a.click();
+// Real-time listeners
+onSnapshot(collection(db, 'expenses'), snap => {
+  expenses = [];
+  snap.forEach(doc => {
+    const data = doc.data();
+    expenses.push({
+      ...data,
+      id: doc.id
+    });
+  });
+  render();
+});
+
+onSnapshot(doc(db, 'meta', 'money'), doc => {
+  if (doc.exists()) {
+    const total = doc.data().total || 0;
+    const spent = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const balanceElem = document.getElementById('balance');
+    balanceElem.textContent = (total - spent).toLocaleString();
+    balanceElem.classList.add('pulse');
+    setTimeout(() => balanceElem.classList.remove('pulse'), 500);
+  }
+});
+
+// Render chart and reports
+function render() {
+  // Update pie chart
+  const totals = {};
+  expenses.forEach(e => {
+    totals[e.category] = (totals[e.category] || 0) + e.amount;
+  });
+  
+  const ctx = document.getElementById('pie').getContext('2d');
+  if (chart) chart.destroy();
+  
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(totals),
+      datasets: [{
+        data: Object.values(totals),
+        backgroundColor: [
+          '#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444',
+          '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#ec4899',
+          '#14b8a6', '#64748b'
+        ],
+        borderWidth: 2,
+        borderColor: 'white'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            padding: 20,
+            usePointStyle: true
+          }
+        }
+      }
+    }
+  });
+  
+  // Update reports
+  const now = new Date();
+  const today = new Date().toDateString();
+  
+  const dayTotal = expenses
+    .filter(e => new Date(e.date).toDateString() === today)
+    .reduce((sum, e) => sum + e.amount, 0);
+  
+  const weekTotal = expenses
+    .filter(e => (now - new Date(e.date)) <= 7 * 86400000)
+    .reduce((sum, e) => sum + e.amount, 0);
+  
+  const monthTotal = expenses
+    .filter(e => new Date(e.date).getMonth() === now.getMonth() && 
+                  new Date(e.date).getFullYear() === now.getFullYear())
+    .reduce((sum, e) => sum + e.amount, 0);
+  
+  document.getElementById('daily').innerHTML = 
+    `<span>Today:</span><span>₹${dayTotal.toLocaleString()}</span>`;
+  document.getElementById('weekly').innerHTML = 
+    `<span>This Week:</span><span>₹${weekTotal.toLocaleString()}</span>`;
+  document.getElementById('monthly').innerHTML = 
+    `<span>This Month:</span><span>₹${monthTotal.toLocaleString()}</span>`;
 }
+
+// Export CSV
+function exportCSV() {
+  if (expenses.length === 0) {
+    showError('No expenses to export');
+    return;
+  }
+  
+  let csv = 'User,Amount Spent,Change Returned,Category,Date\n';
+  expenses.forEach(e => {
+    csv += `${e.user},${e.amount},${e.change || 0},${e.category},"${new Date(e.date).toLocaleString()}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `house-expenses-${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  
+  showSuccess('Export started!');
+}
+
+// Helper functions
+function showError(message) {
+  const errorElem = document.getElementById('error');
+  errorElem.textContent = message;
+  errorElem.style.display = 'block';
+  setTimeout(() => {
+    errorElem.style.display = 'none';
+  }, 5000);
+}
+
+function showSuccess(message) {
+  const success = document.createElement('div');
+  success.textContent = message;
+  success.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--success);
+    color: white;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    z-index: 1000;
+    box-shadow: var(--shadow);
+    animation: slideIn 0.3s ease;
+  `;
+  document.body.appendChild(success);
+  
+  setTimeout(() => {
+    success.style.animation = 'slideOut 0.3s ease';
+    setTimeout(() => success.remove(), 300);
+  }, 3000);
+}
+
+// Add CSS for success message animation
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(100%); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
 </script>
 </body>
 </html>
