@@ -471,12 +471,12 @@ async function setTotal() {
     showError('Please enter a valid total amount');
     return;
   }
-  
-  const button = event.target;
+
+  const button = document.querySelector('button[onclick="setTotal()"]');
   const originalText = button.textContent;
   button.textContent = 'Saving...';
   button.classList.add('loading');
-  
+
   try {
     await setDoc(doc(db, 'meta', 'money'), { total: total });
     totalMoney.value = '';
@@ -494,36 +494,52 @@ async function addExpense() {
   const name = user.value.trim() || 'Unknown';
   const spentAmt = Number(spent.value);
   const changeAmt = Number(change.value) || 0;
-  
-  // Validation
+
   if (!spentAmt || spentAmt <= 0) {
     showError('Please enter a valid spent amount');
-    spent.focus();
     return;
   }
-  
+
   if (changeAmt >= spentAmt) {
     showError('Change cannot be greater than or equal to spent amount');
-    change.focus();
     return;
   }
-  
-  const button = event.target;
+
+  const button = document.querySelector('button[onclick="addExpense()"]');
   const originalText = button.textContent;
   button.textContent = 'Adding...';
   button.classList.add('loading');
-  
+
   try {
-    // Check balance
     const meta = await getDoc(doc(db, 'meta', 'money'));
     const total = meta.exists() ? meta.data().total || 0 : 0;
     const spentTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
-    
+
     if (spentAmt > total - spentTotal) {
       showError('Not enough balance!');
       return;
     }
-    
+
+    await addDoc(collection(db, 'expenses'), {
+      user: name,
+      amount: spentAmt,
+      change: changeAmt,
+      category: categorySelect.value,
+      date: new Date()
+    });
+
+    spent.value = '';
+    change.value = '';
+    user.value = '';
+    showSuccess('Expense added successfully!');
+  } catch (error) {
+    showError('Failed to add expense: ' + error.message);
+  } finally {
+    button.textContent = originalText;
+    button.classList.remove('loading');
+  }
+}
+
     // Add expense to Firestore
     await addDoc(collection(db, 'expenses'), {
       user: name,
@@ -708,6 +724,11 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+  // 🔧 expose functions so HTML buttons work
+window.setTotal = setTotal;
+window.addExpense = addExpense;
+window.exportCSV = exportCSV;
+
 </script>
 </body>
 </html>
